@@ -1,0 +1,5 @@
+addSbtPlugin("org.typelevel" % "sbt-typelevel" % "0.4.17")
+addSbtPlugin("org.typelevel" % "sbt-typelevel-site" % "0.4.17")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "1.12.0")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.6.4")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.10.4")
