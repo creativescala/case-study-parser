@@ -45,7 +45,7 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)
   .in(file("core"))
   .settings(
-    name := "case-study-crdt",
+    name := "case-study-parser",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-core" % "2.8.0",
       "org.typelevel" %%% "cats-effect" % "3.3.14",
