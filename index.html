@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.19.0" />
+    <title>Getting Started</title>
+    
+    
+    <meta name="description" content="docs" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600"
+        rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Crimson+Pro:400" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="creative-scala.css" />
+    <script> /* for avoiding page load transitions */</script>
+</head>
+
+<body>
+    <nav id="topbar"><p></p>
+<p><a href="../">Getting Started</a></p>
+<p><a href="parsing.html">→</a></p></nav>
+    <nav id="sidebar">
+        <ul class="nav-list">
+          <li class="level1 active"><a href="#">Getting Started</a></li>
+          <li class="level1"><a href="parsing.html">Parsers</a></li>
+        </ul>
+    </nav>
+
+    <div id="content">
+        <main class="content">
+            <p>This case study is about parsing, which is the process of building structure from unstructured input. For example, if we have a file with lines like</p>
+            <pre><code>David Bowie      | The Rise and Fall of Ziggy Stardust | 1972
+Autechre         | LP5                                 | 1998
+Julianna Barwick | Healing Is a Miracle                | 2020</code></pre>
+            <p>we can recognise it has structure, but how do we get the computer to recognise this? One answer is to create a parser for the data format we&#39;re expecting; in this case text fields separated by <code>|</code>.</p>
+            <p>In this case study we&#39;ll:</p>
+            <ul>
+              <li>build a <em>parser combinator library</em>, that allows us to easily construct parsers in a compositional way;</li>
+              <li>use our library to parse some example data;</li>
+              <li>consider optimizations and measure performance improvements; and finally</li>
+              <li>put our implementation in the context of wider work on parser combinators.</li>
+            </ul>
+            <p>Specific programming techniques we&#39;ll look at include:</p>
+            <ul>
+              <li>old friends algebraic data types and structural recursion;</li>
+              <li>reification and interpreters;</li>
+              <li>monoids, applicatives, and, possibly, monads;</li>
+              <li>benchmarking and optimizations;</li>
+              <li>generative testing; and</li>
+              <li>continuous integration.</li>
+            </ul>
+            <h1 id="getting-started" class="title">Getting Started</h1>
+            <p>To get started you should <em>fork this repository</em>. To do this, click the &quot;fork&quot; button at the top right of the Github user interface. The means you&#39;ll create your own personal copy of the repository, which is important for the &quot;continuous integration&quot; part of the case study.</p>
+            <p class="nextPage"><a href="parsing.html">Parsers→</a></p>
+        </main>
+        <footer>Creative Scala is copyright Noel Welsh</footer>
+    </div>
+
+    </div>
+</body>
+
+</html>
