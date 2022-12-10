@@ -1,4 +1,4 @@
-# Parsers
+## Parsers
 
 We're going to implement a `Parser` type, but before we do that we're going to design the interface we'll create. In previous case studies you've had a lot of guidance. Here we'll be a bit looser; there is some guidance but the end result is ultimately up to you.
 

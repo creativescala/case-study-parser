@@ -1,3 +1,5 @@
+# Case Study: Parsing
+
 This case study is about parsing, which is the process of building structure from unstructured input. For example, if we have a file with lines like
 
 ```
