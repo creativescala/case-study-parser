@@ -12,7 +12,7 @@ Parser[A].parse(input: String): Result[A]
 
 In words, a `Parser[A]` has a method `parse` that accepts a `String` and returns a `Result[A]`. 
 
-What's a `Result[A]`? It will contain a value of type `A` if we successfully parsed the `String`, and an error otherwise. We'll get into the details later.
+What's a `Result[A]`? On a successful parse it will contain a value of type `A` and any remaining unparsed input. Otherwise we'll have an error. We'll get into the details later.
 
 We'll need a way to create `Parsers`. A very simple constructor will take a `String` as input and return a `Parser[String]` that succeeds if the input starts with exactly that string.
 
@@ -26,3 +26,37 @@ object Parser {
   def string(value: String): Parser[String]
 }
 ```
+
+Ok, now what? We can make some progress by considering the most common type classes: monoid, functor, applicative, and monad. Do they make sense in the context of parsers? Let's look at each in turn.
+
+
+### Monoid
+
+Remember that a monid requires two things:
+
+1. a combining method; and
+2. an identity.
+
+In the context of our `Parser` type, the combine method would have type
+
+```scala
+Parser[A].combine(that: Parser[A]): Parser[A]
+```
+
+Can you think of applications of this type of operation for a parser? It may help to think of other monoids, such as those defined on sets and booleans, and consider how they would translate to a parser.
+
+If you can come up with a meaningful combine, what is it's identity?
+
+Spend some time thinking about this before reading on.
+
+
+### Functor
+
+Functor requires only a `map`:
+
+```scala
+Parser[A].map[B](f: A => B): Parser[B]
+```
+
+This is an essential function. 
+
