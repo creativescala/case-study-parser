@@ -1,8 +1,8 @@
 ## Parsers
 
-We're going to implement a `Parser` type, but before we do that we're going to design the interface we'll create. In previous case studies you've had a lot of guidance. Here we're trying to get in some practice with a type drived design process, so you're asked to think about the implications of particular methods before we discuss how they apply to parsing.
+We're going to implement a `Parser` type, but before we do that we're going to design the interface we'll create. In previous case studies you've had a lot of guidance, and the task has mostly revolved around implementation. Here we're trying to get in some practice with a type drived design process. Specifically we're going to use the common type class interfaces as sources of inspiration for methods that may be meaningful on parsers.
 
-We're going to create a type `Parser[A]`, where the type parameter `A` is the type of the result that a successful parse will produce. So, for example, a `Parser[String]` will produce a `String` on a successful parse (not a very informative type), whereas a `Parser[Album]` will produce an `Album` on a successful parse.
+We're going to create a type `Parser[A]`, where the type parameter `A` is the type of the result that a successful parse will produce. So, for example, a `Parser[String]` will produce a `String` on a successful parse (which is not a very informative type), whereas a `Parser[Album]` will produce an `Album` on a successful parse.
 
 To actually perform the parsing we'll have a method 
 
@@ -136,6 +136,41 @@ Spend some time thinking about this before reading on.
 
 Monoid is interesting because there at least two choices that make sense for a parser:
 
-1. The combine operation chooses between two parsers. If the first doesn't successfully parse the input we try again with the second input. This is the parser equivalent of the logical or operation, and the union of sets. The identity is the parser that always fails, regardless of it's input.
+1. The combine operation chooses between two parsers, known as alternation. If the first doesn't successfully parse the input we try again with the second input. This is the parser equivalent of the logical or operation, and the union of sets. The identity is the parser that always fails, regardless of it's input.
 
-2. The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a monoid for `A` to combine the output. This is the equivalent of the logical and, and the intersection of sets.
+2. The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a monoid for `A` to combine the output. This is the equivalent of the logical and, and the intersection of sets. The identity is the parser that always succeeds, producing the identity element for `A`.
+
+The first variant of combine, choosing between parsers, is essential. The second is useful but not so important. We have enough work already so we'll skip it for now.
+
+As we have two useful monoids for parsers, when we come to implement them we should define methods directly on `Parser` rather than implementing them via a type class. Why? Because type classes work best when there is one canonical implementation for a given type. Switching between implementations requires us to explicitly pass the type class instance, or otherwise bring it into scope, which defeats much of the point of type classes. 
+
+Alternation is conventionally known as `orElse` in Scala, and uses a call-by-name parameter. 
+
+```scala
+Parser[A].orElse(that: => Parser[A]): Parser[A]
+```
+
+The call-by-name parameter will turn out to be essential for parsers, and differs for the definition of `combine` on `Monoid`, which is another good reason to implement the method directly.
+
+
+### Our Final Initial Interface
+
+At this point we've developed quite a rich interface:
+
+```scala mdoc:silent
+trait Parser[A] {
+  def map[B](f: A => B): Parser[B]
+  def product[B](that: Parser[B]): Parser[(A, B)]
+  def flatMap[B](f: A => Parser[B]): Parser[B]
+  def orElse(that: => Parser[A]): Parser[A]
+
+  def parse(input: String): Result[A]
+}
+object Parser {
+  def string(value: String): Parser[String]
+  def pure[A](value: A): Parser[A]
+  def fail[A]: Parser[A]
+}
+```
+
+There are more methods we'll eventually need, but this is more than enough to get us started. Let's move on to implementation and get a complete system working.
