@@ -5,10 +5,17 @@ This case study is about parsing, which is the process of building structure fro
 ```
 David Bowie      | The Rise and Fall of Ziggy Stardust | 1972
 Autechre         | LP5                                 | 1998
+Tadpole          | The Buddhafinger                    | 2000
 Julianna Barwick | Healing Is a Miracle                | 2020
 ```
 
-we can recognise it has structure, but how do we get the computer to recognise this? One answer is to create a parser for the data format we're expecting; in this case text fields separated by `|`.
+we might want to turn each line into a
+
+``` scala
+final case class Album(artist: String, name: String, year: Int)
+```
+
+To do this we can create a parser for the data format, which in this case is fields separated by `|`.
 
 In this case study we'll:
 
