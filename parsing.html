@@ -46,7 +46,37 @@
 </span><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">string</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>]
 }</span></code></pre>
-            <p>Ok, now what? We can make some progress by considering the most common type classes: monoid, functor, applicative, and monad. Do they make sense in the context of parsers? Let&#39;s look at each in turn.</p>
+            <p>Ok, now what? We can make some progress by considering the most common type classes: functor, applicative, monad, and monoid. Do they make sense in the context of parsers? Let&#39;s look at each in turn.</p>
+            
+            <h3 id="functor" class="section">Functor</h3>
+            <p>Functor requires only a <code>map</code> method, which for a <code>Parser</code> will have the type signature</p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
+            <p>This means that we can take an existing parser that produces output of one type, and turn it into a parser that produces an output of some other type. Is this useful? It turns out to be very useful. Right now we can only create a <code>Parser[String]</code>. Adding <code>map</code> means that we can turn that <code>String</code> into any other type we care about, like an <code>Int</code> for example.</p>
+            
+            <h3 id="applicative" class="section">Applicative</h3>
+            <p>Applicative defines <code>ap</code> and <code>pure</code>, but remember that in Scala we mostly interact with the <code>product</code> method defined on <code>Semigroupal</code> via <code>mapN</code>. So we&#39;ll consider <code>product</code> and <code>pure</code>, which together with <code>map</code> are sufficient to create an applicative.</p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">product</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">that</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">Parser</span><span>[(</span><span class="type-name">A</span><span>, </span><span class="type-name">B</span><span>)]
+</span><span class="identifier">pure</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">value</span><span>: </span><span class="type-name">A</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
+            <p>Can you think of a use for these methods? Give this a bit of time before reading on.</p>
+            <p>Both methods are useful, though <code>product</code> is the more useful of the two. <code>Product</code> means we can combine in sequence two or more parsers that produce different types. We started with an example of parsing text fields into the following data structure:</p>
+            <pre><code class="nohighlight"><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Album</span><span>(</span><span class="identifier">artist</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">name</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">year</span><span>: </span><span class="type-name">Int</span><span>)</span></code></pre>
+            <p>If we have a <code>Parser[String]</code> and a <code>Parser[Int]</code> we create an <code>Album</code> with a combination of <code>product</code> and <code>map</code>.</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">stringParser</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] = ???
+</span><span class="keyword">val</span><span> </span><span class="identifier">intParser</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Int</span><span>] = ???
+
+</span><span class="identifier">stringParser</span><span>
+  .</span><span class="identifier">product</span><span>(</span><span class="identifier">stringParser</span><span>)
+  .</span><span class="identifier">product</span><span>(</span><span class="identifier">intParser</span><span>)
+  .</span><span class="identifier">map</span><span>{ </span><span class="keyword">case</span><span> ((</span><span class="identifier">a</span><span>, </span><span class="identifier">n</span><span>), </span><span class="identifier">y</span><span>) =&gt; </span><span class="type-name">Album</span><span>(</span><span class="identifier">a</span><span>, </span><span class="identifier">n</span><span>, </span><span class="identifier">y</span><span>) }</span></code></pre>
+            <p>We can more simply write this using <code>mapN</code>: </p>
+            <pre><code class="nohighlight"><span>(</span><span class="identifier">stringParser</span><span>, </span><span class="identifier">stringParser</span><span>, </span><span class="identifier">intParser</span><span>)
+  .</span><span class="identifier">mapN</span><span>((</span><span class="identifier">a</span><span>, </span><span class="identifier">n</span><span>, </span><span class="identifier">y</span><span>) =&gt; </span><span class="type-name">Album</span><span>(</span><span class="identifier">a</span><span>, </span><span class="identifier">n</span><span>, </span><span class="identifier">y</span><span>))</span></code></pre>
+            <p><code>Pure</code> is less useful, but is still nice to have. It constructs a <code>Parser</code> that always produces the given value and ignores it&#39;s input. It&#39;s sometimes useful when we know that if we parse some input then some other output is implied. We can create this other output with <code>pure</code>. (No example here because I can&#39;t think of one right now!)</p>
+            
+            <h3 id="monad" class="section">Monad</h3>
+            <p>We&#39;re dealt with applicative. What about monad? This means a method</p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">flatMap</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
+            <p>What does this mean in the context of parsing? Can you see uses for <code>flatMap</code>? Once again, spend some time on this before reading on.</p>
             
             <h3 id="monoid" class="section">Monoid</h3>
             <p>Remember that a monid requires two things:</p>
@@ -59,11 +89,6 @@
             <p>Can you think of applications of this type of operation for a parser? It may help to think of other monoids, such as those defined on sets and booleans, and consider how they would translate to a parser.</p>
             <p>If you can come up with a meaningful combine, what is it&#39;s identity?</p>
             <p>Spend some time thinking about this before reading on.</p>
-            
-            <h3 id="functor" class="section">Functor</h3>
-            <p>Functor requires only a <code>map</code>:</p>
-            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
-            <p>This is an essential function. </p>
             
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>

@@ -35,8 +35,11 @@
             <p>This case study is about parsing, which is the process of building structure from unstructured input. For example, if we have a file with lines like</p>
             <pre><code>David Bowie      | The Rise and Fall of Ziggy Stardust | 1972
 Autechre         | LP5                                 | 1998
+Tadpole          | The Buddhafinger                    | 2000
 Julianna Barwick | Healing Is a Miracle                | 2020</code></pre>
-            <p>we can recognise it has structure, but how do we get the computer to recognise this? One answer is to create a parser for the data format we&#39;re expecting; in this case text fields separated by <code>|</code>.</p>
+            <p>we might want to turn each line into a</p>
+            <pre><code class="nohighlight"><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Album</span><span>(</span><span class="identifier">artist</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">name</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">year</span><span>: </span><span class="type-name">Int</span><span>)</span></code></pre>
+            <p>To do this we can create a parser for the data format, which in this case is fields separated by <code>|</code>.</p>
             <p>In this case study we&#39;ll:</p>
             <ul>
               <li>build a <em>parser combinator library</em>, that allows us to easily construct parsers in a compositional way;</li>
