@@ -32,7 +32,7 @@
     <div id="content">
         <main class="content">
             <h1 id="parsers" class="title">Parsers</h1>
-            <p>We&#39;re going to implement a <code>Parser</code> type, but before we do that we&#39;re going to design the interface we&#39;ll create. In previous case studies you&#39;ve had a lot of guidance. Here we&#39;ll be a bit looser; there is some guidance but the end result is ultimately up to you.</p>
+            <p>We&#39;re going to implement a <code>Parser</code> type, but before we do that we&#39;re going to design the interface we&#39;ll create. In previous case studies you&#39;ve had a lot of guidance. Here we&#39;re trying to get in some practice with a type drived design process, so you&#39;re asked to think about the implications of particular methods before we discuss how they apply to parsing.</p>
             <p>We&#39;re going to create a type <code>Parser[A]</code>, where the type parameter <code>A</code> is the type of the result that a successful parse will produce. So, for example, a <code>Parser[String]</code> will produce a <code>String</code> on a successful parse (not a very informative type), whereas a <code>Parser[Album]</code> will produce an <code>Album</code> on a successful parse.</p>
             <p>To actually perform the parsing we&#39;ll have a method </p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
@@ -74,21 +74,45 @@
             <p><code>Pure</code> is less useful, but is still nice to have. It constructs a <code>Parser</code> that always produces the given value and ignores it&#39;s input. It&#39;s sometimes useful when we know that if we parse some input then some other output is implied. We can create this other output with <code>pure</code>. (No example here because I can&#39;t think of one right now!)</p>
             
             <h3 id="monad" class="section">Monad</h3>
-            <p>We&#39;re dealt with applicative. What about monad? This means a method</p>
+            <p>We&#39;ve dealt with applicative. What about monad? This means a method</p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">flatMap</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
             <p>What does this mean in the context of parsing? Can you see uses for <code>flatMap</code>? Once again, spend some time on this before reading on.</p>
+            <p><code>FlatMap</code>allows us to switch to a parser based on the output of another parser. This is done by the function <code>f</code> passed to <code>flatMap</code>. It takes the output of the first parser, and can use that output to choose a parser to parse the rest of the input. For example, we could use <code>flatMap</code> to parse a file where one field tells us the format of the next field. A file like</p>
+            <pre><code>number: 100
+string: hello</code></pre>
+            <p>could be parsed with</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">fieldParser</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] = ??? </span><span class="comment">// parses &lt;type&gt;: and returns &lt;type&gt;
+</span><span class="keyword">val</span><span> </span><span class="identifier">intParser</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Int</span><span>] = ???
+</span><span class="keyword">val</span><span> </span><span class="identifier">stringParser</span><span> = </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] = ???
+
+</span><span class="identifier">fieldParser</span><span>.</span><span class="identifier">flatMap</span><span>(</span><span class="identifier">result</span><span> =&gt;
+  </span><span class="identifier">result</span><span> </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="string-literal">&quot;number&quot;</span><span> =&gt; </span><span class="identifier">intParser</span><span>
+    </span><span class="keyword">case</span><span> </span><span class="string-literal">&quot;string&quot;</span><span> =&gt; </span><span class="identifier">stringParser</span><span>
+  }
+)</span></code></pre>
+            <p>Adding <code>flatMap</code> has some drawbacks, which we&#39;ll see later on, but for now we&#39;ll add it in.</p>
             
             <h3 id="monoid" class="section">Monoid</h3>
-            <p>Remember that a monid requires two things:</p>
+            <p>Finally, let&#39;s consider our last type class, monoid. Remember that a monid requires two things:</p>
             <ol class="arabic">
               <li>a combining method; and</li>
               <li>an identity.</li>
             </ol>
             <p>In the context of our <code>Parser</code> type, the combine method would have type</p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">combine</span><span>(</span><span class="identifier">that</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
-            <p>Can you think of applications of this type of operation for a parser? It may help to think of other monoids, such as those defined on sets and booleans, and consider how they would translate to a parser.</p>
-            <p>If you can come up with a meaningful combine, what is it&#39;s identity?</p>
+            <p>and the identity is an element of type <code>Parser[A]</code>.</p>
+            <p>Can you think of applications of this type of operation for a parser? It may help to think of other monoids, such as those defined on sets and booleans, and consider how they would translate to a parser. If you can come up with a meaningful combine, what is it&#39;s identity?</p>
             <p>Spend some time thinking about this before reading on.</p>
+            <p>Monoid is interesting because there at least two choices that make sense for a parser:</p>
+            <ol class="arabic">
+              <li>
+                <p>The combine operation chooses between two parsers. If the first doesn&#39;t successfully parse the input we try again with the second input. This is the parser equivalent of the logical or operation, and the union of sets. The identity is the parser that always fails, regardless of it&#39;s input.</p>
+              </li>
+              <li>
+                <p>The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a monoid for <code>A</code> to combine the output. This is the equivalent of the logical and, and the intersection of sets.</p>
+              </li>
+            </ol>
             
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
