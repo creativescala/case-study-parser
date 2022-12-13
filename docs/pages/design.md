@@ -1,4 +1,4 @@
-## Parsers
+## Designing Parsers
 
 We're going to implement a `Parser` type, but before we do that we're going to design the interface we'll create. In previous case studies you've had a lot of guidance, and the task has mostly revolved around implementation. Here we're trying to get in some practice with a type drived design process. Specifically we're going to use the common type class interfaces as sources of inspiration for methods that may be meaningful on parsers.
 
