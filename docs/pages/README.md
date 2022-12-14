@@ -37,3 +37,12 @@ Specific programming techniques we'll look at include:
 ## Getting Started
 
 To get started you should *fork this repository*. To do this, click the "fork" button at the top right of the Github user interface. The means you'll create your own personal copy of the repository, which is important for the "continuous integration" part of the case study.
+
+
+## Next Steps
+
+Our next step is to create our parser combinator library. We're going to do this in three broad sections:
+
+1. I'll start by showing you the implementation for a very minimal library. This will demonstrate two things: using type classes to guide design, and using reification as an implementation strategy.
+2. I'll then ask you to design more of the interface, using common type classes as inspiration, and then use the same implementation technique of reification to develop the library further.
+3. We'll then discuss some parser specific methods, and incorporate those into the library.

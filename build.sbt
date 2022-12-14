@@ -50,7 +50,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
       "org.typelevel" %%% "cats-core" % "2.8.0",
       "org.typelevel" %%% "cats-effect" % "3.3.14",
       "org.scalameta" %%% "munit" % "0.7.29" % Test,
-      "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test
+      "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test,
+      "qa.hedgehog" %%% "hedgehog-core" % "0.10.1" % Test,
+      "qa.hedgehog" %%% "hedgehog-runner" % "0.10.1" % Test,
+      "qa.hedgehog" %%% "hedgehog-munit" % "0.10.1" % Test,
+      "qa.hedgehog" %%% "hedgehog-sbt" % "0.10.1" % Test
     )
   )
 

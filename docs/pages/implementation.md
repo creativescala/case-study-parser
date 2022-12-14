@@ -43,7 +43,7 @@ To get started I'm going to show you how to implement the very basics of `Parser
 
 I'm going to implement a single constructor and combinator, and the interpreter for both. I'm choosing `string` and `map` as, respectively, the constructor and combinator. I'm reifying them as an algebraic data type. I'm also putting stub implementations using `???` so I can run the code. By now this implementation strategy should be familiar so I'm just presenting the code below without further explanation.
 
-```scala mdoc:reset:silent
+```scala
 sealed trait Parser[A] {
   import Parser._
 
@@ -70,7 +70,7 @@ object Parser {
 
 The next step is to implement the interpreter. This is a structural recursion, and as usual I'm choosing to implement it with pattern matching.
 
-```scala mdoc:reset:silent
+```scala
 sealed trait Parser[A] {
   import Parser._
 
@@ -106,7 +106,7 @@ Now we get to the novel bit: actually implementing the interpreter. There are tw
 
 `Result` will have two cases; one for success and one for failure. A successful parse returns the value we constructed from parsing and any remaining input. A failure will return the input we failed to a parse and a reason. Ok, I lied a bit. The previous description is conceptually what we'll do, but for efficiency we'll use an index into the input. So on success we'll return the index of where the remaining input starts, rather than the remaining input itself, and on failure we'll return the index where our failing parser started. This avoids a lot of copying data, which is inefficient.
 
-```scala mdoc:silent
+```scala mdoc:reset-object:silent
 /** Indicates the result of a parse. */
 sealed trait Result[A]
 /** The parse succeeded. 
