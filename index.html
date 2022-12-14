@@ -21,11 +21,15 @@
 <body>
     <nav id="topbar"><p></p>
 <p><a href="../">Case Study: Parsing</a></p>
-<p><a href="parsing.html">→</a></p></nav>
+<p><a href="basics.html">→</a></p></nav>
     <nav id="sidebar">
         <ul class="nav-list">
           <li class="level1 active"><a href="#">Case Study: Parsing</a></li>
-          <li class="level1"><a href="parsing.html">Parsers</a></li>
+          <li class="level1"><a href="basics.html">The Simplest Parser</a></li>
+          <li class="level1"><a href="testing.html">Testing Parsers</a></li>
+          <li class="level1"><a href="design.html">Designing Parsers</a></li>
+          <li class="level1"><a href="implementation.html">Implementing Parsers</a></li>
+          <li class="level1"><a href="references.html">References</a></li>
         </ul>
     </nav>
 
@@ -59,7 +63,15 @@ Julianna Barwick | Healing Is a Miracle                | 2020</code></pre>
             
             <h2 id="getting-started" class="section">Getting Started</h2>
             <p>To get started you should <em>fork this repository</em>. To do this, click the &quot;fork&quot; button at the top right of the Github user interface. The means you&#39;ll create your own personal copy of the repository, which is important for the &quot;continuous integration&quot; part of the case study.</p>
-            <p class="nextPage"><a href="parsing.html">Parsers→</a></p>
+            
+            <h2 id="next-steps" class="section">Next Steps</h2>
+            <p>Our next step is to create our parser combinator library. We&#39;re going to do this in three broad sections:</p>
+            <ol class="arabic">
+              <li>I&#39;ll start by showing you the implementation for a very minimal library. This will demonstrate two things: using type classes to guide design, and using reification as an implementation strategy.</li>
+              <li>I&#39;ll then ask you to design more of the interface, using common type classes as inspiration, and then use the same implementation technique of reification to develop the library further.</li>
+              <li>We&#39;ll then discuss some parser specific methods, and incorporate those into the library.</li>
+            </ol>
+            <p class="nextPage"><a href="basics.html">The Simplest Parser→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
     </div>

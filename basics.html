@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.19.0" />
+    <title>The Simplest Parser</title>
+    
+    
+    <meta name="description" content="docs" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600"
+        rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Crimson+Pro:400" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="creative-scala.css" />
+    <script> /* for avoiding page load transitions */</script>
+</head>
+
+<body>
+    <nav id="topbar"><p><a href="index.html">←</a></p>
+<p><a href="../">Case Study: Parsing</a></p>
+<p><a href="testing.html">→</a></p></nav>
+    <nav id="sidebar">
+        <ul class="nav-list">
+          <li class="level1"><a href="index.html">Case Study: Parsing</a></li>
+          <li class="level1 active"><a href="#">The Simplest Parser</a></li>
+          <li class="level1"><a href="testing.html">Testing Parsers</a></li>
+          <li class="level1"><a href="design.html">Designing Parsers</a></li>
+          <li class="level1"><a href="implementation.html">Implementing Parsers</a></li>
+          <li class="level1"><a href="references.html">References</a></li>
+        </ul>
+    </nav>
+
+    <div id="content">
+        <main class="content">
+            <h1 id="the-simplest-parser" class="title">The Simplest Parser</h1>
+            <p>We&#39;re going to start by building the most simplest parser library we can: a parser that parses a single fixed string.</p>
+            <p>We&#39;re going to create a type <code>Parser[A]</code>, where the type parameter <code>A</code> is the type of the result that a successful parse will produce. So, for example, a <code>Parser[String]</code> will produce a <code>String</code> on a successful parse whereas a <code>Parser[Album]</code> will produce an <code>Album</code> on a successful parse.</p>
+            <p>To actually perform the parsing we&#39;ll have a method </p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
+            <p>In words, a <code>Parser[A]</code> has a method <code>parse</code> that accepts a <code>String</code> and returns a <code>Result[A]</code>. </p>
+            <p>What&#39;s a <code>Result[A]</code>? On a successful parse it will contain a value of type <code>A</code> and any remaining unparsed input. Otherwise we&#39;ll have an error. We&#39;ll get into the details later.</p>
+            <p>We&#39;ll need a way to create <code>Parsers</code>. Our very simple constructor will take a <code>String</code> as input and return a <code>Parser[String]</code> that succeeds if the input starts with exactly that string.</p>
+            <p>Let&#39;s sketch out in Scala what we have so far. We&#39;re using a <code>trait</code> to represent <code>Parser</code> for now, but we&#39;ll change that as the design evolves.</p>
+            <pre><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">parse</span><span>(</span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]
+}
+</span><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">string</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>]
+}</span></code></pre>
+            
+            <h3 id="the-result-type" class="section">The Result Type</h3>
+            <p>Now we can flesh out the implementation. We&#39;ll start with <code>Result</code>. We previously described it as:</p>
+            <ul>
+              <li>on a successful parse it will contain a value of type <code>A</code> and any remaining unparsed input; otherwise</li>
+              <li>we&#39;ll have an error. </li>
+            </ul>
+            <p>This immediately suggests an algebraic data type like</p>
+            <pre><code class="nohighlight"><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Success</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">result</span><span>: </span><span class="type-name">A</span><span>, </span><span class="identifier">remaining</span><span>: </span><span class="type-name">String</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Failure</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">reason</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
+            <p>However, for efficiency concerns we&#39;ll use a slightly different representation. If our input is <code>&quot;hello there&quot;</code> and we parse <code>&quot;hello&quot;</code>, the remaining input is <code>&quot; there&quot;</code>. To create this <code>String</code> we have to copy all the characters from the original input, which takes time proportional to the number of characters remaining. When parsing large input this copying can take a significant amount of time. Instead of copying input we can just record the index of character at which parsing should resume. Character indices start at 0, so in this case parsing should resume at character 5. Now we don&#39;t have to do a lot of copying; we can instead just pass around an <code>Int</code>.</p>
+            <p>This gives us the following representation:</p>
+            <pre><code class="nohighlight"><span class="comment">/** Indicates the result of a parse. */</span><span>
+</span><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="comment">/** The parse succeeded. 
+
+    - result is the parsed value
+    - input is the input that was parsed
+    - offset is the index of where any remaining input starts.  */</span><span>
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Success</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">result</span><span>: </span><span class="type-name">A</span><span>, </span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">offset</span><span>: </span><span class="type-name">Int</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="comment">/** The parse failed.
+
+    - reason is a description of why the parser failed
+    - input is the input that the parser attempted to parse
+    - start is the index into input of where the parser started from */</span><span>
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Failure</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">reason</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">start</span><span>: </span><span class="type-name">Int</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
+            
+            <h3 id="implementing-the-parser" class="section">Implementing the Parser</h3>
+            <p>Now we have created <code>Result</code> we can finish the implementation of <code>Parser</code>. Read the code below and I&#39;ll then explain the implementation.</p>
+            <pre><code class="nohighlight"><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] {
+  </span><span class="keyword">import</span><span> </span><span class="type-name">Parser</span><span>.</span><span class="identifier">_</span><span>
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">parse</span><span>(</span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>] = {
+    </span><span class="keyword">def</span><span> </span><span class="declaration-name">loop</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">parser</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>], </span><span class="identifier">index</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>] =
+      </span><span class="identifier">parser</span><span> </span><span class="keyword">match</span><span> {
+        </span><span class="keyword">case</span><span> </span><span class="type-name">ParserString</span><span>(</span><span class="identifier">value</span><span>) =&gt;
+          </span><span class="keyword">if</span><span> (</span><span class="identifier">input</span><span>.</span><span class="identifier">startsWith</span><span>(</span><span class="identifier">value</span><span>, </span><span class="identifier">index</span><span>))
+            </span><span class="type-name">Success</span><span>(</span><span class="identifier">value</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">index</span><span> + </span><span class="identifier">value</span><span>.</span><span class="identifier">size</span><span>)
+          </span><span class="keyword">else</span><span>
+            </span><span class="type-name">Failure</span><span>(
+              </span><span class="string-literal">s&quot;input did not start with </span><span class="substitution">$value</span><span class="string-literal"> at index </span><span class="substitution">$index</span><span class="string-literal">&quot;</span><span>,
+              </span><span class="identifier">input</span><span>,
+              </span><span class="identifier">index</span><span>
+            )
+      }
+    
+    </span><span class="identifier">loop</span><span>(</span><span class="keyword">this</span><span>, </span><span class="number-literal">0</span><span>)
+  }
+}
+</span><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
+  </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">ParserString</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>]
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">string</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] = </span><span class="type-name">ParserString</span><span>(</span><span class="identifier">value</span><span>)
+}</span></code></pre>
+            <p>Before we get into the implementation let&#39;s check that it actually works. Here&#39;s an example of succesful and unsuccessful parsing.</p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="string-literal">&quot;Hello&quot;</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;Hello there&quot;</span><span>)
+</span><span class="comment">// res1: Result[String] = Success(
+//   result = &quot;Hello&quot;,
+//   input = &quot;Hello there&quot;,
+//   offset = 5
+// )
+</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="string-literal">&quot;Goodbye&quot;</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;Hello there&quot;</span><span>)
+</span><span class="comment">// res2: Result[String] = Failure(
+//   reason = &quot;input did not start with Goodbye at index 0&quot;,
+//   input = &quot;Hello there&quot;,
+//   start = 0
+// )</span></code></pre>
+            <p>Now we&#39;re satisfied that it works, let&#39;s talk about how it works. We can see that <code>Parser</code> is an algebraic data type, with <code>ParserString</code> as it&#39;s single case. <code>parse</code> is a structural recursion on <code>Parser</code>. As we&#39;re dealing with indices we need to know at what index we should start looking at the input. That is why we have the <code>loop</code> helper inside <code>parser</code>, which implements the actual structural recursion. In the case of <code>ParserString</code> we simply see if the <code>input</code> starts with the <code>String</code> we&#39;re looking for. If so, we succeed. Otherwise we fail.</p>
+            <p>I&#39;ve described <em>how</em> it works, but <em>why</em> did I decide to implement the code in this way? There is a pattern behind this code, which we&#39;ll look at now.</p>
+            
+            <h3 id="reified-interpreters" class="section">Reified Interpreters</h3>
+            <p>The <code>Parser</code> is an example of a <em>reified interpreter</em>. Let&#39;s talk about interpreters first, and then talk about reification.</p>
+            <p>An interepreter means that there are two parts to our implementation:</p>
+            <ol class="arabic">
+              <li>the part that describes what we want to do, which we call the <em>program</em>; and</li>
+              <li>the part that carries out the description, which is the <em>interpreter</em>.</li>
+            </ol>
+            <p>In this case <code>ParserString</code> is the program. It represents the action we want to carry (look for a particular <code>String</code> in the input) and the <code>String</code> we should be looking for. The interpreter is in the <code>parse</code> method, where we actually go looking for the <code>String</code> in the input.</p>
+            <p>We&#39;ve seen this pattern in other context, so it should be familiar.</p>
+            <p>There are a number of different ways to implement an interpreter. The one I&#39;ve chosen is known as a <em>deep embedding</em> or <em>reification</em>. Reification means to make concrete something that was abstract. Concretely, in this case we&#39;re turning a method (<code>Parser.string</code>) into data (<code>ParserString</code>).</p>
+            <p>The general reification pattern works as follows:</p>
+            <ol class="arabic">
+              <li>We divide methods into three classes: constructors, combinators, and interpreters.</li>
+              <li>We reify constructors and combinators into an algebraic data type.</li>
+              <li>We implement interpreters as structural recursions over the algebraic data type we just created.</li>
+            </ol>
+            <p>Constructors, combinators, and interpreters are the three classes of methods that make up what we call an <em>algebra</em>. In this case <code>Parser</code> is our algebra. We distinguish the three classes of methods as follows:</p>
+            <ul>
+              <li>A method that goes from something that is not our algebra to our algebra is a <em>constructor</em>.</li>
+              <li>A <em>combinator</em> is any method that takes in our algebra as parameter (often the hidden <code>this</code> parameter) and returns our same algebra.</li>
+              <li>An <em>interpreter</em> takes in our algebra and returns something of a different type.</li>
+            </ul>
+            <p>(Note that sometimes we have interpreter methods that take in and return the algebra type. We&#39;ll see one later.)</p>
+            <p>With this classification we can see that:</p>
+            <ol class="arabic">
+              <li><code>Parser.string</code> is a constructor, because it goes from a <code>String</code> to a <code>Parser[String]</code>.</li>
+              <li>There are no combinators, yet.</li>
+              <li><code>Parser.parse</code> is an interpreter, because it goes from a <code>Parser[A]</code> to a <code>Result[A]</code>.</li>
+            </ol>
+            <p>Let&#39;s now talk about the specifics of reification. Remember that we reify every constructor and combinator. To do so we create a <code>final case class</code> for each method that we&#39;re reifying, and:</p>
+            <ol class="arabic">
+              <li>The constructor parameters of the <code>final case class</code> are exactly the parameters of the corresponding method. Remember to include the <code>this</code> parameter for methods on a <code>trait</code> or <code>class</code>.</li>
+              <li>The <code>final case class</code> extends exactly the return type of the method.</li>
+            </ol>
+            <p>In the case of <code>Parser.string</code> there is one parameter and method returns a <code>Parser[String]</code>. Hence <code>ParserString</code> has a single constructor parameter of type <code>String</code> and it extends <code>Parser[String]</code>.</p>
+            <p>Once we have reified to an algebraic data type the interpreter uses the familiar pattern of structural recursion. As is usual in functional programming we have a fancy term for what is ultimately a simple idea.</p>
+            <p class="nextPage"><a href="testing.html">Testing Parsers→</a></p>
+        </main>
+        <footer>Creative Scala is copyright Noel Welsh</footer>
+    </div>
+
+    </div>
+</body>
+
+</html>
