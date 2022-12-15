@@ -213,15 +213,13 @@ Monoid is interesting because there at least two choices that make sense for a p
 
 The first variant of combine, choosing between parsers, is essential. The second is useful but not so important. We have enough work already so we'll skip it for now.
 
-As we have two useful monoids for parsers, when we come to implement them we should define methods directly on `Parser` rather than implementing them via a type class. Why? Because type classes work best when there is one canonical implementation for a given type. Switching between implementations requires us to explicitly pass the type class instance, or otherwise bring it into scope, which defeats much of the point of type classes. 
-
 Alternation is conventionally known as `orElse` in Scala, and uses a call-by-name parameter. 
 
 ```scala
 Parser[A].orElse(that: => Parser[A]): Parser[A]
 ```
 
-The call-by-name parameter will turn out to be essential for parsers, and differs for the definition of `combine` on `Monoid`, which is another good reason to implement the method directly.
+The call-by-name parameter will turn out to be essential for parsers, and differs from the definition of `combine` on `Monoid`, which is another good reason to implement the method directly.
 
 
 ### Wrapping Up
