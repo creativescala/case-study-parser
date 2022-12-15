@@ -20,19 +20,10 @@ import hedgehog._
 import hedgehog.munit.HedgehogSuite
 
 class ParserStringSuite extends HedgehogSuite {
-  property("string parses all input when input is exactly expected value") {
-    for {
-      string <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
-      result = Parser.string(string).parse(string)
-    } yield assertEquals(
-      result,
-      parser.Result.success(string, string, string.size)
-    )
-  }
-
   property("string succeeds when input starts with expected value") {
-    val expected = "$%x)"
     for {
+      // We include 0 in the range because parsing an empty String is valid
+      expected <- Gen.string(Gen.latin1, Range.linear(0, 10)).forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = expected ++ suffix
       result = Parser.string(expected).parse(input)
@@ -43,12 +34,13 @@ class ParserStringSuite extends HedgehogSuite {
     }
   }
 
-  property("string fails when expected value not found at start of input") {
-    val expected = "$%x)"
-    val salt = "abc" // This ensures the prefix is not empty
+  property("string fails when input does not start with expected value") {
     for {
-      prefix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
-      input = salt ++ prefix ++ expected
+      // Make sure the prefix is not empty
+      prefix <- Gen.string(Gen.latin1, Range.linear(1, 35)).forAll
+      // Make sure we're not looking for an empty String, because that will match anything
+      expected <- Gen.string(Gen.latin1, Range.linear(1, 10)).forAll
+      input = prefix ++ expected
       result = Parser.string(expected).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) => success
