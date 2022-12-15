@@ -18,13 +18,13 @@ li.level1.nav-leaf {
     @apply list-none text-pink-300 mt-4;
 }
 ul.nav-list:first-child {
-    @apply mt-0;
+    @apply mt-0 uppercase;
 }
-ul.nav-list li:first-child {
-    @apply uppercase;
+ul.nav-list li.active {
+    @apply text-pink-400;
 }
 li.level1 {
-    @apply list-none uppercase text-pink-300 mt-4;
+    @apply list-none text-pink-300 mt-4;
 }
 li.level2 {
     @apply list-none text-slate-300 pl-4;
