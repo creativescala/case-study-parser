@@ -578,16 +578,17 @@ li.level1.nav-leaf {
 
 ul.nav-list:first-child {
   margin-top: 0px;
+  text-transform: uppercase;
 }
 
-ul.nav-list li:first-child {
-  text-transform: uppercase;
+ul.nav-list li.active {
+  --tw-text-opacity: 1;
+  color: rgb(244 114 182 / var(--tw-text-opacity));
 }
 
 li.level1 {
   margin-top: 1rem;
   list-style-type: none;
-  text-transform: uppercase;
   --tw-text-opacity: 1;
   color: rgb(249 168 212 / var(--tw-text-opacity));
 }
