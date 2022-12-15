@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="generator" content="Laika 0.19.0" />
-    <title>Designing Parsers</title>
+    <title>Designing Using Type Classes</title>
     
     
     <meta name="description" content="docs" />
@@ -27,7 +27,7 @@
           <li class="level1"><a href="index.html">Case Study: Parsing</a></li>
           <li class="level1"><a href="basics.html">The Simplest Parser</a></li>
           <li class="level1"><a href="testing.html">Testing Parsers</a></li>
-          <li class="level1 active"><a href="#">Designing Parsers</a></li>
+          <li class="level1 active"><a href="#">Designing Using Type Classes</a></li>
           <li class="level1"><a href="implementation.html">Implementing Parsers</a></li>
           <li class="level1"><a href="references.html">References</a></li>
         </ul>
@@ -35,12 +35,72 @@
 
     <div id="content">
         <main class="content">
-            <h1 id="designing-parsers" class="title">Designing Parsers</h1>
+            <h1 id="designing-using-type-classes" class="title">Designing Using Type Classes</h1>
+            <p>We&#39;re now going to design a good portion of the parser interface by using the common type classes as inspiration. Your tasks are to:</p>
+            <ul>
+              <li>consider each type class interface and see if it makes sense in the context of parsers;</li>
+              <li>implement the methods and type class instance if appropriate; and</li>
+              <li>implement tests for any methods you&#39;ve created.</li>
+            </ul>
+            <p>To get started I&#39;ll show you how to do the first one, <code>Functor</code>.</p>
             
             <h3 id="functor" class="section">Functor</h3>
             <p>Functor requires only a <code>map</code> method, which for a <code>Parser</code> will have the type signature</p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
             <p>This means that we can take an existing parser that produces output of one type, and turn it into a parser that produces an output of some other type. Is this useful? It turns out to be very useful. Right now we can only create a <code>Parser[String]</code>. Adding <code>map</code> means that we can turn that <code>String</code> into any other type we care about, like an <code>Int</code> for example.</p>
+            <p>Having decided that we want <code>map</code> we&#39;ll now implement it in three stages:</p>
+            <ol class="arabic">
+              <li>creating the <code>map</code> method on <code>Parser</code>;</li>
+              <li>creating the type class instance in the <code>Parser</code> companion object; and</li>
+              <li>implementing tests.</li>
+            </ol>
+            <p>Let&#39;s go!</p>
+            <p>Remember we&#39;re using the reification pattern for our implementation, for which we need to work out if <code>map</code> is a constructor, combinator, or interpreter. The types tell us: <code>map</code> takes in a <code>Parser</code> and returns a <code>Parser</code> so it is a combinator. This means we reify it.</p>
+            <p>We create a case class that holds <em>all</em> the input to the <code>map</code> method (remember there is the hidden <code>this</code> parameter!)</p>
+            <pre><code class="nohighlight"><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">ParserMap</span><span>[</span><span class="type-name">A</span><span>, </span><span class="type-name">B</span><span>](</span><span class="identifier">source</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>], </span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]</span></code></pre>
+            <p>and the implementation of <code>map</code> simply creates an instance of this data structure.</p>
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>] =
+  </span><span class="type-name">ParserMap</span><span>(</span><span class="keyword">this</span><span>, </span><span class="identifier">f</span><span>)</span></code></pre>
+            <p>Easy! Now on to <code>parse</code>. We add a case to the pattern match for <code>ParserMap</code></p>
+            <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserMap</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">f</span><span>) =&gt; ???</span></code></pre>
+            <p>Our first step is to apply the recursion rule for algebraic data types: when the data is recursive the method is recursive.</p>
+            <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserMap</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">f</span><span>) =&gt;
+  </span><span class="identifier">loop</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">index</span><span>)</span></code></pre>
+            <p>Our recursive call to <code>loop</code> returns a <code>Result</code>. <code>Result</code> is an algebraic data type so we can use structural recursion to make progress.</p>
+            <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserMap</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">f</span><span>) =&gt;
+  </span><span class="identifier">loop</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">index</span><span>) </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Failure</span><span>(</span><span class="identifier">reason</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">start</span><span>) =&gt; ???
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Success</span><span>(</span><span class="identifier">result</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">offset</span><span>) =&gt; ???
+  }</span></code></pre>
+            <p>Now we can follow the types to finish up the implementation. In the case of <code>Failure</code> there is nothing we can do, as we have no data of type <code>A</code> to apply to the function <code>f</code>. So we just return the <code>Failure</code>.</p>
+            <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserMap</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">f</span><span>) =&gt;
+  </span><span class="identifier">loop</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">index</span><span>) </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Failure</span><span>(</span><span class="identifier">reason</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">start</span><span>) =&gt; </span><span class="type-name">Failure</span><span>(</span><span class="identifier">reason</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">start</span><span>)
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Success</span><span>(</span><span class="identifier">result</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">offset</span><span>) =&gt; ???
+  }</span></code></pre>
+            <p>In the <code>Success</code> case we have a result of type <code>A</code> to we apply <code>f</code> to it to create a value of type <code>B</code> and return a success of that.</p>
+            <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserMap</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">f</span><span>) =&gt;
+  </span><span class="identifier">loop</span><span>(</span><span class="identifier">source</span><span>, </span><span class="identifier">index</span><span>) </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Failure</span><span>(</span><span class="identifier">reason</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">start</span><span>) =&gt; </span><span class="type-name">Failure</span><span>(</span><span class="identifier">reason</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">start</span><span>)
+    </span><span class="keyword">case</span><span> </span><span class="type-name">Success</span><span>(</span><span class="identifier">result</span><span>, </span><span class="identifier">input</span><span>, </span><span class="identifier">offset</span><span>) =&gt;
+      </span><span class="type-name">Success</span><span>(</span><span class="identifier">f</span><span>(</span><span class="identifier">result</span><span>), </span><span class="identifier">input</span><span>, </span><span class="identifier">offset</span><span>)
+  }</span></code></pre>
+            <p>Done, and everything was created using a systematic and repeatable process.</p>
+            <p>Now it&#39;s on to the type class instance. Remember type classes go in the companion object. Beyond that the implementation is straightforward. We only need to implement <code>map</code> and we can do that by calling the <code>map</code> method we&#39;ve just created.</p>
+            <pre><code class="nohighlight"><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">parserFunctorInstance</span><span>: </span><span class="type-name">Functor</span><span>[</span><span class="type-name">Parser</span><span>] =
+  </span><span class="keyword">new</span><span> </span><span class="type-name">Functor</span><span>[</span><span class="type-name">Parser</span><span>] {
+    </span><span class="keyword">def</span><span> </span><span class="declaration-name">map</span><span>[</span><span class="type-name">A</span><span>, </span><span class="type-name">B</span><span>](</span><span class="identifier">fa</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>])(</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>] =
+      </span><span class="identifier">fa</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">f</span><span>)
+  }</span></code></pre>
+            <p>One small note: remember that <code>Applicative</code> extends <code>Functor</code>, and <code>Monad</code> extends <code>Applicative</code>. So if and when you come to implement type class instances for these types make sure you don&#39;t have two implementations for the type classes they extend. In other words, if you implement <code>Applicative</code> remove the instance for <code>Functor</code>. If you don&#39;t do this there will be ambiguity when the compiler looks for a  <code>Functor</code> instance.</p>
+            <p>Finally we have tests. We need to test two conditions:</p>
+            <ol class="arabic">
+              <li><code>map</code> does the expected transform when the underlying parser succeeds; and</li>
+              <li><code>map</code> fails if the underlying parser fails.</li>
+            </ol>
+            <p>You might notice that these two conditions are exactly the two cases we implemented in the structural recursion on <code>Result</code>. It would be very hard to incorrectly implement <code>map</code> but we&#39;re going add tests anyway. </p>
+            <p>The tests are straight-forward modifications of the existing tests for <code>Parser.string</code>. I&#39;m not going to include the source code here because it&#39;s quite lengthy for very little content. You can find it in the <a href="https://github.com/creativescala/case-study-parser">repository</a>.</p>
+            <p>Now it is over to you. For each type class below think about possible uses in the context of <code>Parser</code>. If you decide it is useful implement it and add tests.</p>
             
             <h3 id="applicative" class="section">Applicative</h3>
             <p>Applicative defines <code>ap</code> and <code>pure</code>, but remember that in Scala we mostly interact with the <code>product</code> method defined on <code>Semigroupal</code> via <code>mapN</code>. So we&#39;ll consider <code>product</code> and <code>pure</code>, which together with <code>map</code> are sufficient to create an applicative.</p>
@@ -108,9 +168,9 @@ string: hello</code></pre>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">orElse</span><span>(</span><span class="identifier">that</span><span>: =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
             <p>The call-by-name parameter will turn out to be essential for parsers, and differs for the definition of <code>combine</code> on <code>Monoid</code>, which is another good reason to implement the method directly.</p>
             
-            <h3 id="our-final-initial-interface" class="section">Our Final Initial Interface</h3>
-            <p>At this point we&#39;ve developed quite a rich interface:</p>
-            <pre><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] {
+            <h3 id="wrapping-up" class="section">Wrapping Up</h3>
+            <p>At this point you should have quite a rich interface that looks something like the below:</p>
+            <pre><code class="nohighlight"><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">product</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">that</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">Parser</span><span>[(</span><span class="type-name">A</span><span>, </span><span class="type-name">B</span><span>)]
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">flatMap</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">B</span><span>]
@@ -123,7 +183,7 @@ string: hello</code></pre>
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">pure</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">value</span><span>: </span><span class="type-name">A</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">fail</span><span>[</span><span class="type-name">A</span><span>]: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]
 }</span></code></pre>
-            <p>There are more methods we&#39;ll eventually need, but this is more than enough to get us started. Let&#39;s move on to implementation and get a complete system working.</p>
+            <p>In addition, at lot of methods will be available via the type class instances you have created. Let&#39;s now do something interesting with our parser library, which will show the power of what we&#39;ve done.</p>
             <p class="nextPage"><a href="implementation.html">Implementing Parsers→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
