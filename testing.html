@@ -36,7 +36,48 @@
     <div id="content">
         <main class="content">
             <h1 id="testing-parsers" class="title">Testing Parsers</h1>
-            <p>Our case studies try to be closer to real development. As such, we&#39;re now going to write tests for our parser, which allows us to introduce <em>property-based</em> or <em>generative</em> testing. The core idea here is that we generate data test, rather than specifying it by hand.</p>
+            <p>Our case studies try to be closer to real development. As such, we&#39;re now going to write tests for our parser, which allows us to introduce <em>property-based</em> or <em>generative</em> testing. The core idea is that we generate data test, rather than specifying it by hand. This enables us to cover more test data than we could reasonably write. This requires a change in testing, where we move from testing that we get exactly the expected output to testing that some more general condition holds.</p>
+            <p>Let&#39;s see an example for <code>Parser.string</code>. The following conditions should hold:</p>
+            <ol class="arabic">
+              <li>it should parse any <code>String</code> that starts with exactly the substring it is expecting; and</li>
+              <li>it should fail to parse any <code>String</code> that starts with something else.</li>
+            </ol>
+            <p>Now we can generate random strings and do some simple manipulations to make them match the conditions we identified above. Here&#39;s the code:</p>
+            <pre><code class="nohighlight"><span class="identifier">property</span><span>(</span><span class="string-literal">&quot;string succeeds when input starts with expected value&quot;</span><span>) {
+  </span><span class="keyword">for</span><span> {
+    </span><span class="comment">// We include 0 in the range because parsing an empty String is valid
+</span><span>    </span><span class="identifier">expected</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">0</span><span>, </span><span class="number-literal">10</span><span>)).</span><span class="identifier">forAll</span><span>
+    </span><span class="identifier">suffix</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">0</span><span>, </span><span class="number-literal">35</span><span>)).</span><span class="identifier">forAll</span><span>
+    </span><span class="identifier">input</span><span> = </span><span class="identifier">expected</span><span> ++ </span><span class="identifier">suffix</span><span>
+    </span><span class="identifier">result</span><span> = </span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">expected</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>)
+  } </span><span class="keyword">yield</span><span> </span><span class="identifier">result</span><span> </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Failure</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt;
+      </span><span class="identifier">fail</span><span>(</span><span class="string-literal">s&quot;Parser failed on input </span><span class="substitution">$input</span><span class="string-literal"> when it should have failed&quot;</span><span>)
+    </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Success</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt; </span><span class="identifier">success</span><span>
+  }
+}
+
+</span><span class="identifier">property</span><span>(</span><span class="string-literal">&quot;string fails when input does not start with expected value&quot;</span><span>) {
+  </span><span class="keyword">for</span><span> {
+    </span><span class="comment">// Make sure the prefix is not empty
+</span><span>    </span><span class="identifier">prefix</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">35</span><span>)).</span><span class="identifier">forAll</span><span>
+    </span><span class="comment">// Make sure we&#39;re not looking for an empty String, because that will match anything
+</span><span>    </span><span class="identifier">expected</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">10</span><span>)).</span><span class="identifier">forAll</span><span>
+    </span><span class="identifier">input</span><span> = </span><span class="identifier">prefix</span><span> ++ </span><span class="identifier">expected</span><span>
+    </span><span class="identifier">result</span><span> = </span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">expected</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>)
+  } </span><span class="keyword">yield</span><span> </span><span class="identifier">result</span><span> </span><span class="keyword">match</span><span> {
+    </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Failure</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt; </span><span class="identifier">success</span><span>
+    </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Success</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt;
+      </span><span class="identifier">fail</span><span>(</span><span class="string-literal">s&quot;Parser succeeded on input </span><span class="substitution">$input</span><span class="string-literal"> when it should have failed&quot;</span><span>)
+  }
+}</span></code></pre>
+            <p>This code is using the <a href="https://hedgehogqa.github.io/scala-hedgehog/">HedgehogQA</a> library and it&#39;s <a href="https://scalameta.org/munit/">MUnit</a> integration. </p>
+            <p>The key parts are:</p>
+            <ul>
+              <li>we write <code>property</code> to create a test;</li>
+              <li>we use calls to <code>Gen</code> to describe how to create our random data, and finish with a call to <code>forAll</code>.</li>
+            </ul>
+            <p>As you can see, there&#39;s not much too it. The main challenge is coming up with the properties we&#39;re testing.</p>
             <p class="nextPage"><a href="design.html">Designing Parsers→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
