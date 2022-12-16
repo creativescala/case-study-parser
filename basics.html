@@ -37,7 +37,7 @@
         <main class="content">
             <h1 id="the-simplest-parser" class="title">The Simplest Parser</h1>
             <p>We&#39;re going to start by building the most simplest parser library we can: a parser that parses a single fixed string.</p>
-            <p>We&#39;re going to create a type <code>Parser[A]</code>, where the type parameter <code>A</code> is the type of the result that a successful parse will produce. So, for example, a <code>Parser[String]</code> will produce a <code>String</code> on a successful parse whereas a <code>Parser[Album]</code> will produce an <code>Album</code> on a successful parse.</p>
+            <p>We&#39;re going to create a type <code>Parser[A]</code>, where the type parameter <code>A</code> is the type of the result produced by a successful parse. So, for example, a <code>Parser[String]</code> will produce a <code>String</code> on a successful parse, and a successful parse by a <code>Parser[Album]</code> will produce an <code>Album</code>.</p>
             <p>To actually perform the parsing we&#39;ll have a method </p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>].</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Result</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
             <p>In words, a <code>Parser[A]</code> has a method <code>parse</code> that accepts a <code>String</code> and returns a <code>Result[A]</code>. </p>
