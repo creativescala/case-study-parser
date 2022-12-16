@@ -576,7 +576,7 @@ li.level1.nav-leaf {
   color: rgb(249 168 212 / var(--tw-text-opacity));
 }
 
-ul.nav-list:first-child {
+ul.nav-list li:first-child {
   margin-top: 0px;
   text-transform: uppercase;
 }

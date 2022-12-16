@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.19.0" />
+    <title>Kleene Star</title>
+    
+    
+    <meta name="description" content="docs" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600"
+        rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Crimson+Pro:400" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="../creative-scala.css" />
+    <script> /* for avoiding page load transitions */</script>
+</head>
+
+<body>
+    <nav id="topbar"><p><a href="monad.html">←</a></p>
+<p><a href="../../">Case Study: Parsing</a></p>
+<p><a href="conclusions.html">→</a></p></nav>
+    <nav id="sidebar">
+        <ul class="nav-list">
+          <li class="level1"><a href="../index.html">Case Study: Parsing</a></li>
+          <li class="level1"><a href="../basics.html">The Simplest Parser</a></li>
+          <li class="level1"><a href="../testing.html">Testing Parsers</a></li>
+          <li class="level1"><a href="../references.html">References</a></li>
+          <li class="level1"><a href="../kleene.html">The Kleene Star</a></li>
+          <li class="level1"><a href="../design.html">Designing Using Type Classes</a></li>
+          <li class="level1"><a href="index.html">Designing Using Type Classes</a></li>
+          <li class="level2"><a href="functor.html">Functor</a></li>
+          <li class="level2"><a href="monoid.html">Monoid</a></li>
+          <li class="level2"><a href="applicative.html">Applicative</a></li>
+          <li class="level2"><a href="monad.html">Monad</a></li>
+          <li class="level2 active"><a href="#">Kleene Star</a></li>
+          <li class="level2"><a href="conclusions.html">Conclusions</a></li>
+        </ul>
+    </nav>
+
+    <div id="content">
+        <main class="content">
+            <h1 id="kleene-star" class="title">Kleene Star</h1>
+            <p>There is one more method we need to implement to have a usable parser combinator library: the <a href="https://en.wikipedia.org/wiki/Kleene_star"><em>Kleene star</em></a>. The what?!? Ok, like most things we&#39;ve seen it&#39;s a complex name for a simple idea: a method that repeats a parser zero or more times.</p>
+            <p>We&#39;ve seen how to write a parser that parses a single digit.</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">digit</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Int</span><span>] = 
+  </span><span class="type-name">List</span><span>(</span><span class="number-literal">0</span><span>, </span><span class="number-literal">1</span><span>, </span><span class="number-literal">2</span><span>, </span><span class="number-literal">3</span><span>, </span><span class="number-literal">4</span><span>, </span><span class="number-literal">5</span><span>, </span><span class="number-literal">6</span><span>, </span><span class="number-literal">7</span><span>, </span><span class="number-literal">8</span><span>, </span><span class="number-literal">9</span><span>)
+    .</span><span class="identifier">fold</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">fail</span><span>[</span><span class="type-name">String</span><span>]){ (</span><span class="identifier">accum</span><span>, </span><span class="identifier">digit</span><span>) =&gt;
+      </span><span class="identifier">accum</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">digit</span><span>.</span><span class="identifier">toString</span><span>).</span><span class="identifier">as</span><span>(</span><span class="identifier">digit</span><span>))
+    }</span></code></pre>
+            <p>A number is one or more digits. We don&#39;t currently have any way to write this. The Kleene star allows us to do this. With the Kleene star we can write</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">number</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Int</span><span>] = </span><span class="identifier">digit</span><span>.</span><span class="identifier">and</span><span>(</span><span class="identifier">digit</span><span>.</span><span class="identifier">repeat</span><span>)</span></code></pre>
+            <p>The keen-eyed readers will have noticed I&#39;ve used <em>two</em> new methods here: <code>and</code> and <code>repeat</code>. So what&#39;s going on here? Here&#39;s the lowdown:</p>
+            <ol class="arabic">
+              <li><code>and</code> is the other monoid operation we discussed earlier, that combines two parsers; and</li>
+              <li><code>repeat</code> is the Kleene star, that repeats a parser zero or more times.</li>
+            </ol>
+            <p>If you think about it, you&#39;ll see that the Kleene star is a generalization of <code>and</code>:</p>
+            <ul>
+              <li>if no input matches the parser, we succeed with the monoid identity; otherwise</li>
+              <li>we use the monoid combine to combine all the results that are successfully parsed.</li>
+            </ul>
+            <p>Go ahead and implement these methods, and tests for them.</p>
+            <p class="nextPage"><a href="conclusions.html">Conclusions→</a></p>
+        </main>
+        <footer>Creative Scala is copyright Noel Welsh</footer>
+    </div>
+
+    </div>
+</body>
+
+</html>

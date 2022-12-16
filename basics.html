@@ -27,9 +27,16 @@
           <li class="level1"><a href="index.html">Case Study: Parsing</a></li>
           <li class="level1 active"><a href="#">The Simplest Parser</a></li>
           <li class="level1"><a href="testing.html">Testing Parsers</a></li>
-          <li class="level1"><a href="design.html">Designing Using Type Classes</a></li>
-          <li class="level1"><a href="kleene.html">The Kleene Star</a></li>
           <li class="level1"><a href="references.html">References</a></li>
+          <li class="level1"><a href="kleene.html">The Kleene Star</a></li>
+          <li class="level1"><a href="design.html">Designing Using Type Classes</a></li>
+          <li class="level1"><a href="type-classes/index.html">Designing Using Type Classes</a></li>
+          <li class="level2"><a href="type-classes/functor.html">Functor</a></li>
+          <li class="level2"><a href="type-classes/monoid.html">Monoid</a></li>
+          <li class="level2"><a href="type-classes/applicative.html">Applicative</a></li>
+          <li class="level2"><a href="type-classes/monad.html">Monad</a></li>
+          <li class="level2"><a href="type-classes/kleene.html">Kleene Star</a></li>
+          <li class="level2"><a href="type-classes/conclusions.html">Conclusions</a></li>
         </ul>
     </nav>
 
@@ -50,6 +57,9 @@
 </span><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">string</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>]
 }</span></code></pre>
+            <p>When we&#39;ve finished the implementation we&#39;ll be able to create a parser like so:</p>
+            <pre><code class="nohighlight"><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="string-literal">&quot;Ziggy Stardust&quot;</span><span>)</span></code></pre>
+            <p>This will successful parse a <code>String</code> that starts with <code>&quot;Ziggy Stardust&quot;</code> but fail if the <code>String</code> starts with anything else.</p>
             
             <h3 id="the-result-type" class="section">The Result Type</h3>
             <p>Now we can flesh out the implementation. We&#39;ll start with <code>Result</code>. We previously described it as:</p>
@@ -107,13 +117,13 @@
 }</span></code></pre>
             <p>Before we get into the implementation let&#39;s check that it actually works. Here&#39;s an example of succesful and unsuccessful parsing.</p>
             <pre><code class="nohighlight"><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="string-literal">&quot;Hello&quot;</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;Hello there&quot;</span><span>)
-</span><span class="comment">// res1: Result[String] = Success(
+</span><span class="comment">// res2: Result[String] = Success(
 //   result = &quot;Hello&quot;,
 //   input = &quot;Hello there&quot;,
 //   offset = 5
 // )
 </span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="string-literal">&quot;Goodbye&quot;</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;Hello there&quot;</span><span>)
-</span><span class="comment">// res2: Result[String] = Failure(
+</span><span class="comment">// res3: Result[String] = Failure(
 //   reason = &quot;input did not start with Goodbye at index 0&quot;,
 //   input = &quot;Hello there&quot;,
 //   start = 0
