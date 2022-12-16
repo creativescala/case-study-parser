@@ -2,7 +2,7 @@
 
 We're going to start by building the most simplest parser library we can: a parser that parses a single fixed string.
 
-We're going to create a type `Parser[A]`, where the type parameter `A` is the type of the result that a successful parse will produce. So, for example, a `Parser[String]` will produce a `String` on a successful parse whereas a `Parser[Album]` will produce an `Album` on a successful parse.
+We're going to create a type `Parser[A]`, where the type parameter `A` is the type of the result produced by a successful parse. So, for example, a `Parser[String]` will produce a `String` on a successful parse, and a successful parse by a `Parser[Album]` will produce an `Album`.
 
 To actually perform the parsing we'll have a method 
 
