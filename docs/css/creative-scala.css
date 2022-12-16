@@ -17,7 +17,7 @@ nav#sidebar {
 li.level1.nav-leaf {
     @apply list-none text-pink-300 mt-4;
 }
-ul.nav-list:first-child {
+ul.nav-list li:first-child {
     @apply mt-0 uppercase;
 }
 ul.nav-list li.active {
