@@ -36,7 +36,7 @@ Specific programming techniques we'll look at include:
 
 ## Getting Started
 
-To get started you should *fork this repository*. To do this, click the "fork" button at the top right of the Github user interface. The means you'll create your own personal copy of the repository, which is important for the "continuous integration" part of the case study.
+To get started you should *fork this [repository](https://github.com/creativescala/case-study-parser)*. To do this, click the "fork" button at the top right of the Github user interface. The means you'll create your own personal copy of the repository, which is important for the "continuous integration" part of the case study.
 
 
 ## Next Steps

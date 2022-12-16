@@ -27,6 +27,17 @@ object Parser {
 }
 ```
 
+When we've finished the implementation we'll be able to create a parser like so:
+
+```scala mdoc:invisible
+import parser._
+```
+```scala mdoc:silent
+Parser.string("Ziggy Stardust")
+```
+
+This will successful parse a `String` that starts with `"Ziggy Stardust"` but fail if the `String` starts with anything else.
+
 
 ### The Result Type
 

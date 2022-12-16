@@ -90,3 +90,4 @@ lazy val docs = project
       .value
   )
   .enablePlugins(TypelevelSitePlugin)
+  .dependsOn(core.jvm)
