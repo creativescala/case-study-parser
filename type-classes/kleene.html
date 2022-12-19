@@ -55,7 +55,13 @@
               <li><code>and</code> is the other monoid operation we discussed earlier, that combines two parsers; and</li>
               <li><code>repeat</code> is the Kleene star, that repeats a parser zero or more times.</li>
             </ol>
-            <p>If you think about it, you&#39;ll see that the Kleene star is a generalization of <code>and</code>:</p>
+            <p>If you think about it, you&#39;ll see that the Kleene star is a generalization of <code>and</code>.</p>
+            <p>The rules for <code>and</code> are:</p>
+            <ul>
+              <li>if either parser fails, the combination fails; otherwise</li>
+              <li>combine the successful results using the semigroup for <code>A</code>.</li>
+            </ul>
+            <p>For <code>repeat</code>, the Kleene star, the rules are:</p>
             <ul>
               <li>if no input matches the parser, we succeed with the monoid identity; otherwise</li>
               <li>we use the monoid combine to combine all the results that are successfully parsed.</li>

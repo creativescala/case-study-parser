@@ -57,7 +57,7 @@
                 <p>The combine operation chooses between two parsers, known as alternation. If the first doesn&#39;t successfully parse the input we try again with the second input. This is the parser equivalent of the logical or operation, and the union of sets. The identity is the parser that always fails, regardless of it&#39;s input.</p>
               </li>
               <li>
-                <p>The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a monoid for <code>A</code> to combine the output. This is the equivalent of the logical and, and the intersection of sets. The identity is the parser that always succeeds, producing the identity element for <code>A</code>.</p>
+                <p>The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a semigroup for <code>A</code> to combine the output. This is the equivalent of the logical and, and the intersection of sets. The identity is the parser that always succeeds, producing the identity element for <code>A</code>.</p>
               </li>
             </ol>
             <p>The first variant of combine, choosing between parsers, is essential. The second is useful but not so important. We have enough work already so we&#39;ll skip it for now.</p>
@@ -71,7 +71,7 @@
       </span><span class="identifier">accum</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">digit</span><span>.</span><span class="identifier">toString</span><span>).</span><span class="identifier">as</span><span>(</span><span class="identifier">digit</span><span>)) 
     }</span></code></pre>
             <p>Note that <code>as</code> is a method we get by implementing the <code>Functor</code> instance for <code>Parser</code>.</p>
-            <p>Now it&#39;s over to you to implement the <code>orElse</code> and the identity, which I called <code>fail</code> in the example above, and the tests. Remember to follow the reification pattern and you should find this reasonably straightforward.</p>
+            <p>Now it&#39;s over to you to implement the <code>orElse</code>, the identity, which I called <code>fail</code> in the example above, and the tests. Remember to follow the reification pattern and you should find this reasonably straightforward.</p>
             <p class="nextPage"><a href="applicative.html">Applicative→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
