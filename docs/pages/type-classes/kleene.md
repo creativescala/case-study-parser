@@ -23,7 +23,14 @@ The keen-eyed readers will have noticed I've used *two* new methods here: `and` 
 1. `and` is the other monoid operation we discussed earlier, that combines two parsers; and
 2. `repeat` is the Kleene star, that repeats a parser zero or more times.
 
-If you think about it, you'll see that the Kleene star is a generalization of `and`:
+If you think about it, you'll see that the Kleene star is a generalization of `and`.
+
+The rules for `and` are:
+
+- if either parser fails, the combination fails; otherwise
+- combine the successful results using the semigroup for `A`.
+
+For `repeat`, the Kleene star, the rules are:
 
 - if no input matches the parser, we succeed with the monoid identity; otherwise
 - we use the monoid combine to combine all the results that are successfully parsed.

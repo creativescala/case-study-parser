@@ -8,7 +8,7 @@ sealed trait Parser[A] {
   def product[B](that: Parser[B]): Parser[(A, B)]
   def flatMap[B](f: A => Parser[B]): Parser[B]
   def orElse(that: => Parser[A]): Parser[A]
-  def and(that: Parser[A])(implicit m: Monoid[A]): Parser[A]
+  def and(that: Parser[A])(implicit m: Semigroup[A]): Parser[A]
   def repeat(implicit m: Monoid[A]): Parser[A]
 
   def parse(input: String): Result[A]
