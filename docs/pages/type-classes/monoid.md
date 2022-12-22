@@ -21,7 +21,7 @@ Monoid is interesting because there at least two choices that make sense for a p
 
 1. The combine operation chooses between two parsers, known as alternation. If the first doesn't successfully parse the input we try again with the second input. This is the parser equivalent of the logical or operation, and the union of sets. The identity is the parser that always fails, regardless of it's input.
 
-2. The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a monoid for `A` to combine the output. This is the equivalent of the logical and, and the intersection of sets. The identity is the parser that always succeeds, producing the identity element for `A`.
+2. The combine operation combines the results of two parsers. We parse the input with the first parser, parse the remaining input with the second parser, and then combine the output of both parsers if they were both successful. This requires we have a semigroup for `A` to combine the output. This is the equivalent of the logical and, and the intersection of sets. The identity is the parser that always succeeds, producing the identity element for `A`.
 
 The first variant of combine, choosing between parsers, is essential. The second is useful but not so important. We have enough work already so we'll skip it for now.
 
@@ -45,4 +45,4 @@ val digit: Parser[Int] =
 
 Note that `as` is a method we get by implementing the `Functor` instance for `Parser`.
 
-Now it's over to you to implement the `orElse` and the identity, which I called `fail` in the example above, and the tests. Remember to follow the reification pattern and you should find this reasonably straightforward.
+Now it's over to you to implement the `orElse`, the identity, which I called `fail` in the example above, and the tests. Remember to follow the reification pattern and you should find this reasonably straightforward.
