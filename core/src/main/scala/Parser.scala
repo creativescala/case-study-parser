@@ -116,6 +116,8 @@ sealed trait Parser[A] {
         case ParserFail() => Failure("This parser always fails", input, index)
 
         case ParserSucceed(m) => Success(m.empty, input, index)
+
+        case ParserDelay(p) => loop(p(), index)
       }
 
     loop(this, 0)
@@ -126,6 +128,7 @@ object Parser {
   def pure[A](x: A): Parser[A] = ParserPure(x)
   def fail[A]: Parser[A] = ParserFail()
   def succeed[A](implicit m: Monoid[A]): Parser[A] = ParserSucceed(m)
+  def delay[A](parser: => Parser[A]): Parser[A] = ParserDelay(() => parser)
 
   final case class ParserString(value: String) extends Parser[String]
   final case class ParserPure[A](value: A) extends Parser[A]
@@ -149,6 +152,7 @@ object Parser {
       extends Parser[A]
   final case class ParserTailRecM[A, B](f: A => Parser[Either[A, B]], a: A)
       extends Parser[B]
+  final case class ParserDelay[A](parser: () => Parser[A]) extends Parser[A]
 
   implicit val parserMonadInstance: Monad[Parser] =
     new Monad[Parser] {
