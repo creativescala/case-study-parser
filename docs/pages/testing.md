@@ -19,17 +19,17 @@ property("string succeeds when input starts with expected value") {
     result = Parser.string(expected).parse(input)
   } yield result match {
     case parser.Failure(_, _, _) =>
-      fail(s"Parser failed on input $input when it should have failed")
+      fail(s"Parser failed on input $input when it should have succeeded")
     case parser.Success(_, _, _) => success
   }
 }
 
 property("string fails when input does not start with expected value") {
   for {
-    // Make sure the prefix is not empty
-    prefix <- Gen.string(Gen.latin1, Range.linear(1, 35)).forAll
+    // Make sure the prefix is not empty and different from the expected value
+    prefix <- Gen.string(Gen.lower, Range.linear(1, 35)).forAll
     // Make sure we're not looking for an empty String, because that will match anything
-    expected <- Gen.string(Gen.latin1, Range.linear(1, 10)).forAll
+    expected <- Gen.string(Gen.upper, Range.linear(1, 10)).forAll
     input = prefix ++ expected
     result = Parser.string(expected).parse(input)
   } yield result match {
