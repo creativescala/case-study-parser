@@ -101,6 +101,16 @@ sealed trait Parser[A] {
           val (offset, a) = repeatLoop(index, m.empty)
           Success(a, input, offset)
 
+        case ParserChar(value) =>
+          if (input.charAt(index) == value)
+            Success(value, input, index + 1)
+          else
+            Failure(
+              s"input did not contain character $value at index $index",
+              input,
+              index
+            )
+
         case ParserString(value) =>
           if (input.startsWith(value, index))
             Success(value, input, index + value.size)
@@ -124,12 +134,22 @@ sealed trait Parser[A] {
   }
 }
 object Parser {
+  def char(value: Char): Parser[Char] = ParserChar(value)
   def string(value: String): Parser[String] = ParserString(value)
   def pure[A](x: A): Parser[A] = ParserPure(x)
   def fail[A]: Parser[A] = ParserFail()
   def succeed[A](implicit m: Monoid[A]): Parser[A] = ParserSucceed(m)
   def delay[A](parser: => Parser[A]): Parser[A] = ParserDelay(() => parser)
+  def oneCharOf(char: Char, chars: Char*): Parser[Char] =
+    chars.foldLeft(Parser.char(char)) { (parser, char) =>
+      parser.orElse(Parser.char(char))
+    }
+  def oneStringOf(string: String, strings: String*): Parser[String] =
+    strings.foldLeft(Parser.string(string)) { (parser, string) =>
+      parser.orElse(Parser.string(string))
+    }
 
+  final case class ParserChar(value: Char) extends Parser[Char]
   final case class ParserString(value: String) extends Parser[String]
   final case class ParserPure[A](value: A) extends Parser[A]
   final case class ParserFail[A]() extends Parser[A]

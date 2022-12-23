@@ -19,14 +19,14 @@ package parser
 import hedgehog._
 import hedgehog.munit.HedgehogSuite
 
-class ParserStringSuite extends HedgehogSuite {
-  property("string succeeds when input starts with expected value") {
+class ParserCharSuite extends HedgehogSuite {
+  property("char succeeds when input starts with expected value") {
     for {
-      // We include 0 in the range because parsing an empty String is valid
-      expected <- Gen.string(Gen.latin1, Range.linear(0, 10)).forAll
+      // We include 0 in the range because parsing an empty Char is valid
+      expected <- Gen.ascii.forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
-      input = expected ++ suffix
-      result = Parser.string(expected).parse(input)
+      input = expected +: suffix
+      result = Parser.char(expected).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) =>
         fail(s"Parser failed on input $input when it should have succeeded")
@@ -34,14 +34,14 @@ class ParserStringSuite extends HedgehogSuite {
     }
   }
 
-  property("string fails when input does not start with expected value") {
+  property("char fails when input does not start with expected value") {
     for {
-      // Make sure the prefix is not empty and different from the expected value
-      prefix <- Gen.string(Gen.lower, Range.linear(1, 35)).forAll
-      // Make sure we're not looking for an empty String, because that will match anything
-      expected <- Gen.string(Gen.upper, Range.linear(1, 10)).forAll
-      input = prefix ++ expected
-      result = Parser.string(expected).parse(input)
+      // Make sure the prefix is not empty
+      prefix <- Gen.string(Gen.lower, Range.linear(1, 10)).forAll
+      // Make sure we're not looking for an empty Char, because that will match anything
+      expected <- Gen.upper.forAll
+      input = prefix :+ expected
+      result = Parser.char(expected).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) => success
       case parser.Success(_, _, _) =>
