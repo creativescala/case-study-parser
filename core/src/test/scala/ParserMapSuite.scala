@@ -38,9 +38,9 @@ class ParserMapSuite extends HedgehogSuite {
   property("map does nothing when underlying parser fails") {
     for {
       // Make sure the prefix is not empty
-      prefix <- Gen.string(Gen.latin1, Range.linear(1, 35)).forAll
+      prefix <- Gen.string(Gen.upper, Range.linear(1, 35)).forAll
       // Make sure we're not looking for an empty String, because that will match anything
-      expected <- Gen.string(Gen.latin1, Range.linear(1, 10)).forAll
+      expected <- Gen.string(Gen.lower, Range.linear(1, 10)).forAll
       input = prefix ++ expected
       result = Parser.string(expected).map(_.size).parse(input)
     } yield result match {
