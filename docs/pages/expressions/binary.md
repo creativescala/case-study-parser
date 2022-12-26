@@ -25,7 +25,7 @@ This is sufficient for us to start writing parsers. I'll get you started.
 ```scala
 val alphabetic: Parser[String] =
   List('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-       wn', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
+       'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z')
     .foldLeft(Parser.fail[String]){ (parser, char) =>
       parser.orElse(Parser.string(char.toString))
     }
@@ -42,7 +42,7 @@ Now we can parse very very simple expressions, we should create a data structure
 
 Here's an AST, which is also an ADT, for representing the expressions we described above:
 
-```scala
+```scala mdoc:silent:reset-object
 sealed trait Expression {
   import Expression._
 
@@ -57,7 +57,7 @@ object Expression {
   def variable(value: String): Expression = Variable(value)
 
   final case class Literal(value: Int) extends Expression
-  final case class Variable(value: Int) extends Expression
+  final case class Variable(value: String) extends Expression
   final case class Add(left: Expression, right: Expression) extends Expression
   final case class Multiply(left: Expression, right: Expression) extends Expression
 }
