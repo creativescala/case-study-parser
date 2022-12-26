@@ -17,6 +17,7 @@
 package parser
 
 import cats._
+import cats.implicits._
 
 sealed trait Parser[A] {
   import Parser._
@@ -36,8 +37,22 @@ sealed trait Parser[A] {
   def and(that: Parser[A])(implicit s: Semigroup[A]): Parser[A] =
     ParserAnd(this, that, s)
 
-  def repeat(implicit m: Monoid[A]): Parser[A] =
-    ParserRepeat(this, m)
+  def zeroOrMore(implicit m: Monoid[A]): Parser[A] =
+    repeatAtLeast(0)
+
+  def oneOrMore(implicit m: Monoid[A]): Parser[A] =
+    repeatAtLeast(1)
+
+  def repeatAtLeast(minimum: Int)(implicit m: Monoid[A]): Parser[A] = {
+    def loop(count: Int): Parser[A] =
+      if (count == 0) ParserRepeat(this, m)
+      else ParserAnd(this, loop(count - 1), m)
+
+    loop(minimum)
+  }
+
+  def repeatBetween(min: Int, max: Int)(implicit m: Monoid[A]): Parser[A] =
+    ParserRepeatBetween(this, min, max, m)
 
   def parse(input: String): Result[A] = {
     def loop[A](parser: Parser[A], index: Int): Result[A] =
@@ -100,6 +115,28 @@ sealed trait Parser[A] {
 
           val (offset, a) = repeatLoop(index, m.empty)
           Success(a, input, offset)
+
+        case ParserRepeatBetween(source, min, max, m) =>
+          def repeatLoop(count: Int, idx: Int, result: A): Option[(Int, A)] =
+            if (count > max) (idx, result).some
+            else
+              loop(source, idx) match {
+                case Failure(_, _, _) =>
+                  if (count >= min) (idx, result).some
+                  else none
+                case Success(a, _, offset) =>
+                  repeatLoop(count + 1, offset, m.combine(result, a))
+              }
+
+          repeatLoop(0, index, m.empty) match {
+            case None =>
+              Failure(
+                s"Did not match between $min and $max times",
+                input,
+                index
+              )
+            case Some((idx, result)) => Success(result, input, idx)
+          }
 
         case ParserChar(value) =>
           if (input.charAt(index) == value)
@@ -170,6 +207,12 @@ object Parser {
   ) extends Parser[A]
   final case class ParserRepeat[A](source: Parser[A], monoid: Monoid[A])
       extends Parser[A]
+  final case class ParserRepeatBetween[A](
+      source: Parser[A],
+      min: Int,
+      max: Int,
+      monoid: Monoid[A]
+  ) extends Parser[A]
   final case class ParserTailRecM[A, B](f: A => Parser[Either[A, B]], a: A)
       extends Parser[B]
   final case class ParserDelay[A](parser: () => Parser[A]) extends Parser[A]

@@ -27,7 +27,7 @@ object Expression {
     }
 
   val literal: Parser[Expr] =
-    digit.and(digit.repeat).map(str => Expr.literal(str.toInt))
+    digit.and(digit.oneOrMore).map(str => Expr.literal(str.toInt))
 
   val variable: Parser[Expr] =
     Parser.string("x").as(Expr.variable("x"))
