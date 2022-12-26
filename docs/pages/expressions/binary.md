@@ -101,10 +101,24 @@ A few points:
 
 ### Lessons on API Design
 
-Our work so far as exposed some flaws in our current design. Here are some of the issues:
+Our work so far as exposed some flaws in our current design. Here are the issues I noted:
 
 1. We have to use a `Parser[String]` just to look for a single `Char`. A `String` contains 0 or more characters, while a `Char` is exactly one character. It would be better if could use the more precise type `Char` when we want exactly one `Char`.
 
 2. `oneOf` is the kind of method that should be provided by our parser library, as it's a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we're looking for, and one where we specify a predicate that is `true` if the character is one we're looking for.
 
 3. The construction `parser.and(parser.repeat)` is an inconvenient way to express we that we want to repeat a parser one or more times, and is certainly a bit opaque to someone new to the library. This operation is sometimes known as the Kleene plus, and it's very common. We should consider supporting it directly.
+
+Designing using type classes gets us some of the way to a good API, but not all of the way. We still need domain specific methods like the Kleene star. Working on examples is a good way to discover missing methods, as we've done here.
+
+I added the following constructors:
+
+- `Parser.char(value: Char): Parser[Char]`
+- `Parser.oneCharOf(char: Char, chars: Char*): Parser[Char]`
+- `Parser.oneStringOf(string: String, strings: String*): Parser[String]`
+
+I then reworked the `repeat` combinator:
+
+- I added `repeatAtLeast(minimum: Int)`, which allows the called to specify the minimum number of repeats for a succesful parse;
+- I added `zeroOrMore` and `oneOrMore` as special cases of `repeatAtLeast`; and
+- I added `repeatBetween(min: Int, max: Int)` to allow specifying a maximum number of repeats.
