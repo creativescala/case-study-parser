@@ -63,3 +63,29 @@ addition.parse("1 + 2")
 ```
 
 What the junk?! Our interpreter failed with a pattern match against `null`. How is this possible? Where could this `null` possibly have come from?
+
+Let's see an simplified example that shows the behaviour we're seeing.
+
+```scala mdoc
+val a: String = {
+  println(s"a is $a")
+  "Hello"
+}
+```
+
+Here we bind the name `a` to a `String`. In the right-hand side expression, where we compute the value of `a`, we also refer to `a` in the `println` expression. We see that this is possible, but the value of `a` is `null` at the time when we're computing the value of `a`. Once `a` is defined we get the value we expected, `"Hello"`, when we refer to it.
+
+This explains that issue we saw with our parser. The definition of `addition` refers to itself, and therefore we end up with a `null` value inside the parser we build.
+
+Let's try another approach. Instead of creating a value, we'll create a method that, when called, returns the parser. The parser will refer to the method but that's ok, because the method will already have been defined by the time it is called.
+
+```scala mdoc:silent
+def addition2: Parser[Expression] =
+  (factor, plus, addition).mapN((left, _, right) => left + right)
+```
+
+Seems to work, so let's test it.
+
+```scala mdoc:crash
+addition2.parse("1 + 2")
+```
