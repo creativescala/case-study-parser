@@ -53,7 +53,7 @@ val factor: Parser[Expression] = variable.orElse(number)
 val plus: Parser[Char] = whitespace *> Parser.char('+') <* whitespace
 
 val addition: Parser[Expression] =
-  (factor, plus, addition).mapN((left, _, right) => left + right)
+  (factor, plus, addition).mapN((left, _, right) => left + right).orElse(factor)
 ```
 
 It seems to have worked. Let's give it a whirl.
@@ -81,11 +81,11 @@ Let's try another approach. Instead of creating a value, we'll create a method t
 
 ```scala mdoc:silent
 def addition2: Parser[Expression] =
-  (factor, plus, addition).mapN((left, _, right) => left + right)
+  (factor, plus, addition2).mapN((left, _, right) => left + right).orElse(factor)
 ```
 
 Seems to work, so let's test it.
 
-```scala mdoc
+```scala mdoc:crash
 addition2.parse("1 + 2")
 ```
