@@ -86,6 +86,6 @@ def addition2: Parser[Expression] =
 
 Seems to work, so let's test it.
 
-```scala mdoc:crash
+```scala mdoc
 addition2.parse("1 + 2")
 ```
