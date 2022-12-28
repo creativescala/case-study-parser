@@ -34,9 +34,10 @@
           <li class="level2"><a href="type-classes/monad.html">Monad</a></li>
           <li class="level2"><a href="type-classes/kleene.html">Kleene Star</a></li>
           <li class="level2"><a href="type-classes/conclusions.html">Conclusions</a></li>
-          <li class="level1"><a href="references.html">References</a></li>
           <li class="level1"><a href="expressions/index.html">Parsing Expressions</a></li>
           <li class="level2"><a href="expressions/binary.html">Parsing Binary Operations</a></li>
+          <li class="level2"><a href="expressions/recursion.html">Recursive Expressions</a></li>
+          <li class="level1"><a href="references.html">References</a></li>
         </ul>
     </nav>
 
@@ -59,17 +60,17 @@
     </span><span class="identifier">result</span><span> = </span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">expected</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>)
   } </span><span class="keyword">yield</span><span> </span><span class="identifier">result</span><span> </span><span class="keyword">match</span><span> {
     </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Failure</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt;
-      </span><span class="identifier">fail</span><span>(</span><span class="string-literal">s&quot;Parser failed on input </span><span class="substitution">$input</span><span class="string-literal"> when it should have failed&quot;</span><span>)
+      </span><span class="identifier">fail</span><span>(</span><span class="string-literal">s&quot;Parser failed on input </span><span class="substitution">$input</span><span class="string-literal"> when it should have succeeded&quot;</span><span>)
     </span><span class="keyword">case</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Success</span><span>(</span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">_</span><span>) =&gt; </span><span class="identifier">success</span><span>
   }
 }
 
 </span><span class="identifier">property</span><span>(</span><span class="string-literal">&quot;string fails when input does not start with expected value&quot;</span><span>) {
   </span><span class="keyword">for</span><span> {
-    </span><span class="comment">// Make sure the prefix is not empty
-</span><span>    </span><span class="identifier">prefix</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">35</span><span>)).</span><span class="identifier">forAll</span><span>
+    </span><span class="comment">// Make sure the prefix is not empty and different from the expected value
+</span><span>    </span><span class="identifier">prefix</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">lower</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">35</span><span>)).</span><span class="identifier">forAll</span><span>
     </span><span class="comment">// Make sure we&#39;re not looking for an empty String, because that will match anything
-</span><span>    </span><span class="identifier">expected</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">latin1</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">10</span><span>)).</span><span class="identifier">forAll</span><span>
+</span><span>    </span><span class="identifier">expected</span><span> &lt;- </span><span class="type-name">Gen</span><span>.</span><span class="identifier">string</span><span>(</span><span class="type-name">Gen</span><span>.</span><span class="identifier">upper</span><span>, </span><span class="type-name">Range</span><span>.</span><span class="identifier">linear</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="number-literal">10</span><span>)).</span><span class="identifier">forAll</span><span>
     </span><span class="identifier">input</span><span> = </span><span class="identifier">prefix</span><span> ++ </span><span class="identifier">expected</span><span>
     </span><span class="identifier">result</span><span> = </span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">expected</span><span>).</span><span class="identifier">parse</span><span>(</span><span class="identifier">input</span><span>)
   } </span><span class="keyword">yield</span><span> </span><span class="identifier">result</span><span> </span><span class="keyword">match</span><span> {

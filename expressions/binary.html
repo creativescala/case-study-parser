@@ -21,7 +21,7 @@
 <body>
     <nav id="topbar"><p><a href="index.html">←</a></p>
 <p><a href="../../">Case Study: Parsing</a></p>
-<p></p></nav>
+<p><a href="recursion.html">→</a></p></nav>
     <nav id="sidebar">
         <ul class="nav-list">
           <li class="level1"><a href="../index.html">Case Study: Parsing</a></li>
@@ -34,9 +34,10 @@
           <li class="level2"><a href="../type-classes/monad.html">Monad</a></li>
           <li class="level2"><a href="../type-classes/kleene.html">Kleene Star</a></li>
           <li class="level2"><a href="../type-classes/conclusions.html">Conclusions</a></li>
-          <li class="level1"><a href="../references.html">References</a></li>
           <li class="level1"><a href="index.html">Parsing Expressions</a></li>
           <li class="level2 active"><a href="#">Parsing Binary Operations</a></li>
+          <li class="level2"><a href="recursion.html">Recursive Expressions</a></li>
+          <li class="level1"><a href="../references.html">References</a></li>
         </ul>
     </nav>
 
@@ -63,8 +64,8 @@
             </ul>
             <p>This is sufficient for us to start writing parsers. I&#39;ll get you started.</p>
             <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">alphabetic</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
-  </span><span class="type-name">List</span><span>(</span><span class="identifier">`a`</span><span>, </span><span class="identifier">`b`</span><span>, </span><span class="identifier">`c`</span><span>, </span><span class="identifier">`d`</span><span>, </span><span class="identifier">`e`</span><span>, </span><span class="identifier">`f`</span><span>, </span><span class="identifier">`g`</span><span>, </span><span class="identifier">`h`</span><span>, </span><span class="identifier">`i`</span><span>, </span><span class="identifier">`j`</span><span>, </span><span class="identifier">`k`</span><span>, </span><span class="identifier">`l`</span><span>, </span><span class="identifier">`m`</span><span>,
-       </span><span class="identifier">`n`</span><span>, </span><span class="identifier">`o`</span><span>, </span><span class="identifier">`p`</span><span>, </span><span class="identifier">`q`</span><span>, </span><span class="identifier">`r`</span><span>, </span><span class="identifier">`s`</span><span>, </span><span class="identifier">`t`</span><span>, </span><span class="identifier">`u`</span><span>, </span><span class="identifier">`v`</span><span>, </span><span class="identifier">`w`</span><span>, </span><span class="identifier">`x`</span><span>, </span><span class="identifier">`y`</span><span>, </span><span class="identifier">`z`</span><span>)
+  </span><span class="type-name">List</span><span>(</span><span class="char-literal">&#39;a&#39;</span><span>, </span><span class="char-literal">&#39;b&#39;</span><span>, </span><span class="char-literal">&#39;c&#39;</span><span>, </span><span class="char-literal">&#39;d&#39;</span><span>, </span><span class="char-literal">&#39;e&#39;</span><span>, </span><span class="char-literal">&#39;f&#39;</span><span>, </span><span class="char-literal">&#39;g&#39;</span><span>, </span><span class="char-literal">&#39;h&#39;</span><span>, </span><span class="char-literal">&#39;i&#39;</span><span>, </span><span class="char-literal">&#39;j&#39;</span><span>, </span><span class="char-literal">&#39;k&#39;</span><span>, </span><span class="char-literal">&#39;l&#39;</span><span>, </span><span class="char-literal">&#39;m&#39;</span><span>,
+       </span><span class="char-literal">&#39;n&#39;</span><span>, </span><span class="char-literal">&#39;o&#39;</span><span>, </span><span class="char-literal">&#39;p&#39;</span><span>, </span><span class="char-literal">&#39;q&#39;</span><span>, </span><span class="char-literal">&#39;r&#39;</span><span>, </span><span class="char-literal">&#39;s&#39;</span><span>, </span><span class="char-literal">&#39;t&#39;</span><span>, </span><span class="char-literal">&#39;u&#39;</span><span>, </span><span class="char-literal">&#39;v&#39;</span><span>, </span><span class="char-literal">&#39;w&#39;</span><span>, </span><span class="char-literal">&#39;x&#39;</span><span>, </span><span class="char-literal">&#39;y&#39;</span><span>, </span><span class="char-literal">&#39;z&#39;</span><span>)
     .</span><span class="identifier">foldLeft</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">fail</span><span>[</span><span class="type-name">String</span><span>]){ (</span><span class="identifier">parser</span><span>, </span><span class="identifier">char</span><span>) =&gt;
       </span><span class="identifier">parser</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">char</span><span>.</span><span class="identifier">toString</span><span>))
     }
@@ -89,7 +90,7 @@
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">variable</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>): </span><span class="type-name">Expression</span><span> = </span><span class="type-name">Variable</span><span>(</span><span class="identifier">value</span><span>)
 
   </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Literal</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">Int</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Expression</span><span>
-  </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Variable</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">Int</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Expression</span><span>
+  </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Variable</span><span>(</span><span class="identifier">value</span><span>: </span><span class="type-name">String</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Expression</span><span>
   </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Add</span><span>(</span><span class="identifier">left</span><span>: </span><span class="type-name">Expression</span><span>, </span><span class="identifier">right</span><span>: </span><span class="type-name">Expression</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Expression</span><span>
   </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Multiply</span><span>(</span><span class="identifier">left</span><span>: </span><span class="type-name">Expression</span><span>, </span><span class="identifier">right</span><span>: </span><span class="type-name">Expression</span><span>) </span><span class="keyword">extends</span><span> </span><span class="type-name">Expression</span><span>
 }</span></code></pre>
@@ -98,7 +99,7 @@
             <p>Update your parsers so they produce values of type <code>Expression</code> on a successful parse. We don&#39;t yet have parsers for compound expressions (addition and multiplication) but that&#39;s our next step.</p>
             
             <h3 id="binary-operations" class="section">Binary Operations</h3>
-            <p>Our next step is to parse the binary operations <code>+</code> and <code>*</code>. You might already see how to do this. If so, try it yourself before reading on. If not, I&#39;ll show how to implement a parser for addition.</p>
+            <p>Our next step is to parse the binary operations <code>+</code> and <code>*</code>. You might already see how to do this. If so, try it yourself before reading on. If not, I&#39;ll show how to implement a parser for addition. Multiplication is a straightforward modification of it.</p>
             <p>An addition is a literal or variable, followed by the addition sign, followed by another literal or variable. The actually not entirely correct. There can be whitespace separating any of these elements, and our parser needs to account for that. </p>
             <p>Here&#39;s my implementation.</p>
             <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">oneOf</span><span>(</span><span class="identifier">char</span><span>: </span><span class="type-name">Char</span><span>, </span><span class="identifier">chars</span><span>: </span><span class="type-name">Chars</span><span>*): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
@@ -106,16 +107,46 @@
     </span><span class="identifier">parser</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">char</span><span>.</span><span class="identifier">toString</span><span>)) 
   }
   
-</span><span class="keyword">val</span><span> </span><span class="identifier">whitespace</span><span> = </span><span class="identifier">oneOf</span><span>(</span><span class="char-literal">&#39; &#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\t</span><span class="char-literal">&#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\n</span><span class="char-literal">&#39;</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">whitespace</span><span> = </span><span class="identifier">oneOf</span><span>(</span><span class="char-literal">&#39; &#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\t</span><span class="char-literal">&#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\n</span><span class="char-literal">&#39;</span><span>).</span><span class="identifier">repeat</span><span>
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">factor</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] = </span><span class="identifier">literal</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="identifier">variable</span><span>)
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">addition</span><span> = (</span><span class="identifier">factor</span><span>, (</span><span class="identifier">whitespace</span><span> *&gt; </span><span class="identifier">oneOf</span><span>(</span><span class="char-literal">&#39;+&#39;</span><span>) &lt;* </span><span class="identifier">whitespace</span><span>), </span><span class="identifier">factor</span><span>)
                  .</span><span class="identifier">mapN</span><span>((</span><span class="identifier">l</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">r</span><span>) =&gt; </span><span class="identifier">l</span><span> + </span><span class="identifier">r</span><span>)</span></code></pre>
-            <p>Notice how defined a utility method, <code>oneOf</code>, to make creating parsers easier. I&#39;ve also used <code>mapN</code>, <code>*&gt;</code>, and <code>&lt;*</code>, which are methods defined by Cats for all Applicatives, to make the code a bit more compact.</p>
+            <p>A few points:</p>
+            <ul>
+              <li>I defined a parser <code>factor</code> to refer to a literal or a variable.</li>
+              <li>I created a utility method, <code>oneOf</code>, to make creating parsers easier.</li>
+              <li>I&#39;ve also used <code>mapN</code>, <code>*&gt;</code>, and <code>&lt;*</code>, which are methods defined by Cats for all applicatives, to make the code a bit more compact. You should be familiar with <code>mapN</code>, but <code>*&gt;</code> and <code>&lt;*</code> may be new to you. The way to read them is as binary operations that only keep the value pointed to by the arrow. So in <code>whitespace *&gt; oneOf(&#39;+&#39;) &lt;* whitespace</code> I only keep the result of parsing the <code>+</code> and discard the result of parsing any whitespace. These methods are on the edge for me: they are not so well known that I feel confident using them in all codebases. In this context, though, it&#39;s an opportunity for you learn so I&#39;ve used them.</li>
+            </ul>
             
             <h3 id="lessons-on-api-design" class="section">Lessons on API Design</h3>
-            
+            <p>Our work so far as exposed some flaws in our current design. Here are the issues I noted:</p>
+            <ol class="arabic">
+              <li>
+                <p>We have to use a <code>Parser[String]</code> just to look for a single <code>Char</code>. A <code>String</code> contains 0 or more characters, while a <code>Char</code> is exactly one character. It would be better if could use the more precise type <code>Char</code> when we want exactly one <code>Char</code>.</p>
+              </li>
+              <li>
+                <p><code>oneOf</code> is the kind of method that should be provided by our parser library, as it&#39;s a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we&#39;re looking for, and one where we specify a predicate that is <code>true</code> if the character is one we&#39;re looking for.</p>
+              </li>
+              <li>
+                <p>The construction <code>parser.and(parser.repeat)</code> is an inconvenient way to express we that we want to repeat a parser one or more times, and is certainly a bit opaque to someone new to the library. This operation is sometimes known as the Kleene plus, and it&#39;s very common. We should consider supporting it directly.</p>
+              </li>
+            </ol>
+            <p>Designing using type classes gets us some of the way to a good API, but not all of the way. We still need domain specific methods like the Kleene star. Working on examples is a good way to discover missing methods, as we&#39;ve done here.</p>
+            <p>I added the following constructors:</p>
+            <ul>
+              <li><code>Parser.char(value: Char): Parser[Char]</code></li>
+              <li><code>Parser.oneCharOf(char: Char, chars: Char*): Parser[Char]</code></li>
+              <li><code>Parser.oneStringOf(string: String, strings: String*): Parser[String]</code></li>
+            </ul>
+            <p>I then reworked the <code>repeat</code> combinator:</p>
+            <ul>
+              <li>I added <code>repeatAtLeast(minimum: Int)</code>, which allows the called to specify the minimum number of repeats for a succesful parse;</li>
+              <li>I added <code>zeroOrMore</code> and <code>oneOrMore</code> as special cases of <code>repeatAtLeast</code>; and</li>
+              <li>I added <code>repeatBetween(min: Int, max: Int)</code> to allow specifying a maximum number of repeats.</li>
+            </ul>
+            <p class="nextPage"><a href="recursion.html">Recursive Expressions→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
     </div>
