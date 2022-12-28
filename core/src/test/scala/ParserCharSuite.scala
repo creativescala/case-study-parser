@@ -22,8 +22,8 @@ import hedgehog.munit.HedgehogSuite
 class ParserCharSuite extends HedgehogSuite {
   property("char succeeds when input starts with expected value") {
     for {
-      // We include 0 in the range because parsing an empty Char is valid
       expected <- Gen.ascii.forAll
+      // We include 0 in the range because parsing an empty Char is valid
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = expected +: suffix
       result = Parser.char(expected).parse(input)
@@ -38,7 +38,6 @@ class ParserCharSuite extends HedgehogSuite {
     for {
       // Make sure the prefix is not empty
       prefix <- Gen.string(Gen.lower, Range.linear(1, 10)).forAll
-      // Make sure we're not looking for an empty Char, because that will match anything
       expected <- Gen.upper.forAll
       input = prefix :+ expected
       result = Parser.char(expected).parse(input)
@@ -46,6 +45,14 @@ class ParserCharSuite extends HedgehogSuite {
       case parser.Failure(_, _, _) => success
       case parser.Success(_, _, _) =>
         fail(s"Parser succeeded on input $input when it should have failed")
+    }
+  }
+
+  test("char doesn't crash on empty string") {
+    Parser.char('a').parse("") match {
+      case parser.Failure(reason, input, start) => success
+      case parser.Success(result, input, offset) =>
+        fail(s"Parser succeeded on empty input when it should have failed")
     }
   }
 }

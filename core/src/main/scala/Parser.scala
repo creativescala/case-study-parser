@@ -139,11 +139,17 @@ sealed trait Parser[A] {
           }
 
         case ParserChar(value) =>
-          if (input.charAt(index) == value)
+          if (index >= input.size)
+            Failure(
+              "Input has ended but was expecting character ${value}",
+              input,
+              index
+            )
+          else if (input.charAt(index) == value)
             Success(value, input, index + 1)
           else
             Failure(
-              s"input did not contain character $value at index $index",
+              s"Input did not contain character $value at index $index",
               input,
               index
             )
@@ -153,7 +159,7 @@ sealed trait Parser[A] {
             Success(value, input, index + value.size)
           else
             Failure(
-              s"input did not start with $value at index $index",
+              s"Input did not start with $value at index $index",
               input,
               index
             )
