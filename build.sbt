@@ -25,7 +25,7 @@ ThisBuild / scalaVersion := scala213 // the default Scala
 ThisBuild / scalafixDependencies += "com.github.liancheng" %% "organize-imports" % "0.6.0"
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
-ThisBuild / tlSitePublishBranch := Some("main")
+ThisBuild / tlSitePublishBranch := Some("solution/all")
 
 // Run this (build) to do everything involved in building the project
 commands += Command.command("build") { state =>
