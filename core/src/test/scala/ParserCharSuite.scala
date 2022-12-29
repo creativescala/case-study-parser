@@ -50,8 +50,8 @@ class ParserCharSuite extends HedgehogSuite {
 
   test("char doesn't crash on empty string") {
     Parser.char('a').parse("") match {
-      case _: parser.Failure => success
-      case _: parser.Success[Char] =>
+      case parser.Failure(_, _, _) => success
+      case parser.Success(_, _, _) =>
         fail(s"Parser succeeded on empty input when it should have failed")
     }
   }
