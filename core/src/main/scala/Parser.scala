@@ -81,7 +81,7 @@ sealed trait Parser[A] {
         case ParserOrElse(left, right) =>
           loop(left, index) match {
             case _: Failure    => loop(right(), index)
-            case s: Success[A] => s
+            case s: Success[_] => s
           }
 
         case ParserAnd(left, right, m) =>
