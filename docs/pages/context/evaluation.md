@@ -45,14 +45,14 @@ How do we know this is really a lists of ones? Let's redefine our infinite list 
 
 ```scala mdoc:reset-object:silent
 // This construction allows us to call the apply method on the companion object
-// (which has a call-by-name parameter) which makes it easier to construction
-// delayed values.
+// (which has a call-by-name parameter) making it easier to construct delayed
+// values.
 class Delay[A](delayed: () => A) {
   def force: A = delayed()
 }
 object Delay {
-def apply[A](value: => A): Delay[A] =
-  new Delay(() => value)
+  def apply[A](value: => A): Delay[A] =
+    new Delay(() => value)
 }
 
 sealed trait InfiniteList[A] {
