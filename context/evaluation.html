@@ -46,9 +46,92 @@
     <div id="content">
         <main class="content">
             <h1 id="controlling-order-of-evaluation" class="title">Controlling Order of Evaluation</h1>
-            <p>What we&#39;ve seen is a general principle for handling potentially unbounded recursive structures: delay building the structure until it is needed.</p>
-            <p>A classic application of this is in building infinite lists. We already know we can define</p>
+            <p>The technique we used to implement recursive parsers is a general technique for handling any potentially unbounded recursive structure: delay building the structure until it is needed.</p>
+            <p>In this section we will:</p>
+            <ul>
+              <li>touch on a classic application of this idea;</li>
+              <li>discuss how it relates to order of evaluation; and</li>
+              <li>computation vs data</li>
+              <li>provide some references where you can learn more.</li>
+            </ul>
+            
+            <h3 id="infinite-lists" class="section">Infinite Lists</h3>
+            <p>Building infinite lists is a classic application of delaying evaluation. We already know finite lists. A list of <code>A</code> is:</p>
+            <ul>
+              <li>the empty list; or</li>
+              <li>a pair with a head of type <code>A</code> and a tail that is a list of <code>A</code>.</li>
+            </ul>
+            <p>This is an algebraic data type, and we know systematic techniques to implmement it and write methods using it.</p>
+            <p>We can change this to an infinite list by delaying the tail. We&#39;ll first define a class to hold delayed values. This class has a single method to evaluate the delayed values, known as forcing them.</p>
+            <pre><code class="nohighlight"><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Delay</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">delayed</span><span>: () =&gt; </span><span class="type-name">A</span><span>) {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">force</span><span>: </span><span class="type-name">A</span><span> = </span><span class="identifier">delayed</span><span>()
+}</span></code></pre>
+            <p>Now we can define an infinite list.</p>
+            <pre><code class="nohighlight"><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Empty</span><span>[</span><span class="type-name">A</span><span>]() </span><span class="keyword">extends</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]
+</span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Pair</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">head</span><span>: </span><span class="type-name">A</span><span>, </span><span class="identifier">tail</span><span>: </span><span class="type-name">Delay</span><span>[</span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]]) </span><span class="keyword">extends</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]</span></code></pre>
+            <p>We can define an infinite list of ones as follows.</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">ones</span><span>: </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">Int</span><span>] = </span><span class="type-name">Pair</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="type-name">Delay</span><span>(() =&gt; </span><span class="identifier">ones</span><span>))</span></code></pre>
+            <p>How do we know this is really a lists of ones? Let&#39;s redefine our infinite list with some useful methods.</p>
+            <pre><code class="nohighlight"><span class="comment">// This construction allows us to call the apply method on the companion object
+// (which has a call-by-name parameter) which makes it easier to construction
+// delayed values.
+</span><span class="keyword">class</span><span> </span><span class="type-name">Delay</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">delayed</span><span>: () =&gt; </span><span class="type-name">A</span><span>) {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">force</span><span>: </span><span class="type-name">A</span><span> = </span><span class="identifier">delayed</span><span>()
+}
+</span><span class="keyword">object</span><span> </span><span class="type-name">Delay</span><span> {
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">apply</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">value</span><span>: =&gt; </span><span class="type-name">A</span><span>): </span><span class="type-name">Delay</span><span>[</span><span class="type-name">A</span><span>] =
+  </span><span class="keyword">new</span><span> </span><span class="type-name">Delay</span><span>(() =&gt; </span><span class="identifier">value</span><span>)
+}
+
+</span><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>] {
+  </span><span class="keyword">import</span><span> </span><span class="type-name">InfiniteList</span><span>.</span><span class="identifier">_</span><span>
+  </span><span class="keyword">def</span><span> ::(</span><span class="identifier">value</span><span>: </span><span class="type-name">A</span><span>): </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>] = 
+    </span><span class="type-name">Pair</span><span>(</span><span class="identifier">value</span><span>, </span><span class="type-name">Delay</span><span>(</span><span class="keyword">this</span><span>))
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">map</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">f</span><span>: </span><span class="type-name">A</span><span> =&gt; </span><span class="type-name">B</span><span>): </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">B</span><span>] =
+    </span><span class="keyword">this</span><span> </span><span class="keyword">match</span><span> {
+      </span><span class="keyword">case</span><span> </span><span class="type-name">Empty</span><span>()    =&gt; </span><span class="type-name">Empty</span><span>()
+      </span><span class="keyword">case</span><span> </span><span class="type-name">Pair</span><span>(</span><span class="identifier">h</span><span>, </span><span class="identifier">t</span><span>) =&gt; </span><span class="type-name">Pair</span><span>(</span><span class="identifier">f</span><span>(</span><span class="identifier">h</span><span>), </span><span class="type-name">Delay</span><span>(</span><span class="identifier">t</span><span>.</span><span class="identifier">force</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">f</span><span>)))
+    }
+    
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">zip</span><span>[</span><span class="type-name">B</span><span>](</span><span class="identifier">that</span><span>: </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">B</span><span>]): </span><span class="type-name">InfiniteList</span><span>[(</span><span class="type-name">A</span><span>, </span><span class="type-name">B</span><span>)] =
+    (</span><span class="keyword">this</span><span>, </span><span class="identifier">that</span><span>) </span><span class="keyword">match</span><span> {
+      </span><span class="keyword">case</span><span> (</span><span class="type-name">Pair</span><span>(</span><span class="identifier">h1</span><span>, </span><span class="identifier">t1</span><span>), </span><span class="type-name">Pair</span><span>(</span><span class="identifier">h2</span><span>, </span><span class="identifier">t2</span><span>)) =&gt;
+        </span><span class="type-name">Pair</span><span>((</span><span class="identifier">h1</span><span>, </span><span class="identifier">h2</span><span>), </span><span class="type-name">Delay</span><span>(</span><span class="identifier">t1</span><span>.</span><span class="identifier">force</span><span>.</span><span class="identifier">zip</span><span>(</span><span class="identifier">t2</span><span>.</span><span class="identifier">force</span><span>)))
+      </span><span class="keyword">case</span><span> </span><span class="identifier">_</span><span> =&gt; </span><span class="type-name">Empty</span><span>()
+    }
+    
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">take</span><span>(</span><span class="identifier">count</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">List</span><span>[</span><span class="type-name">A</span><span>] =
+    </span><span class="keyword">if</span><span>(</span><span class="identifier">count</span><span> &lt;= </span><span class="number-literal">0</span><span>) </span><span class="type-name">List</span><span>.</span><span class="identifier">empty</span><span>
+    </span><span class="keyword">else</span><span> {
+      </span><span class="keyword">this</span><span> </span><span class="keyword">match</span><span> {
+        </span><span class="keyword">case</span><span> </span><span class="type-name">Empty</span><span>()    =&gt; </span><span class="type-name">List</span><span>.</span><span class="identifier">empty</span><span>
+        </span><span class="keyword">case</span><span> </span><span class="type-name">Pair</span><span>(</span><span class="identifier">h</span><span>, </span><span class="identifier">t</span><span>) =&gt; </span><span class="identifier">h</span><span> :: </span><span class="identifier">t</span><span>.</span><span class="identifier">force</span><span>.</span><span class="identifier">take</span><span>(</span><span class="identifier">count</span><span> - </span><span class="number-literal">1</span><span>)
+      }
+    }
+}
+</span><span class="keyword">object</span><span> </span><span class="type-name">InfiniteList</span><span> {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">apply</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">head</span><span>: </span><span class="type-name">A</span><span>, </span><span class="identifier">tail</span><span>: </span><span class="type-name">Delay</span><span>[</span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]]): </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>] =
+    </span><span class="type-name">Pair</span><span>(</span><span class="identifier">head</span><span>, </span><span class="identifier">tail</span><span>)
+
+  </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Empty</span><span>[</span><span class="type-name">A</span><span>]() </span><span class="keyword">extends</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]
+  </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">Pair</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">head</span><span>: </span><span class="type-name">A</span><span>, </span><span class="identifier">tail</span><span>: </span><span class="type-name">Delay</span><span>[</span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]]) </span><span class="keyword">extends</span><span> </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">A</span><span>]
+}</span></code></pre>
+            <p>Now we can do some fun things. First let&#39;s see that a finite portion of the infinite list of ones is all ones.</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">ones</span><span>: </span><span class="type-name">InfiniteList</span><span>[</span><span class="type-name">Int</span><span>] = </span><span class="type-name">InfiniteList</span><span>(</span><span class="number-literal">1</span><span>, </span><span class="type-name">Delay</span><span>(</span><span class="identifier">ones</span><span>))</span></code></pre>
+            <pre><code class="nohighlight"><span class="identifier">ones</span><span>.</span><span class="identifier">take</span><span>(</span><span class="number-literal">5</span><span>)
+</span><span class="comment">// res2: List[Int] = List(1, 1, 1, 1, 1)</span></code></pre>
+            <p>We can <code>map</code> our infinte list, and see that a finite portion is transformed as we expect.</p>
+            <pre><code class="nohighlight"><span class="identifier">ones</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span> + </span><span class="number-literal">2</span><span>).</span><span class="identifier">take</span><span>(</span><span class="number-literal">5</span><span>)
+</span><span class="comment">// res3: List[Int] = List(3, 3, 3, 3, 3)</span></code></pre>
             <p>, and an extension of Scala&#39;s call-by-name parameters. Call-by-name parameters are not evaluated until they are referred to, but this is not sufficient for our purposes. Putting the value into a data structure counts as a reference, which would cause evaluation. We&#39;ve extended call-by-name parameters to delay evaluation to a point of our choosing, by wrapping the parameter in a zero-argument function. With this technique we have complete control over the order of evaluation. What we&#39;ve implement, in the <code>Parser</code> interpreter, is call-by-name evaluation for delayed parsers. (Note the subtle difference: this is call-by-name evaluation, which is more general than call-by-name parameters.) The distinguishing feature of call-by-name evaluation is that we evaluate delayed values every time they are referred to (which is exactly what our interpreter does). In contrast, call-by-need (also known as lazy evaluation) evaluates the delayed value the first time it is referred to, and stores the result for future use. Call-by-value (also known as eager evaluation) is the default in Scala and has no delayed values.</p>
+            <p>How to add laziness to a strict language without even being odd
+            Philip Wadler, Walid Taha, David MacQueen, 1998
+            <a href="https://www.diva-portal.org/smash/get/diva2:413532/FULLTEXT01.pdf">https://www.diva-portal.org/smash/get/diva2:413532/FULLTEXT01.pdf</a></p>
+            <p>Reasoning about Codata
+            Ralf Hinze, 2009
+            <a href="https://www.cs.ox.ac.uk/ralf.hinze/publications/CEFP09.pdf">https://www.cs.ox.ac.uk/ralf.hinze/publications/CEFP09.pdf</a></p>
             
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
