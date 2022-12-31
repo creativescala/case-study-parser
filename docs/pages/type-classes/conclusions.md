@@ -23,4 +23,9 @@ object Parser {
 
 In addition, at lot of methods will be available via the type class instances you have created. 
 
+There are two big lessons here:
+
+- we can use type classes as inspiration for designing APIs; and
+- we should also consider existing knowledge in a field
+
 Let's now do something interesting with our parser library, which will show the power of what we've done.
