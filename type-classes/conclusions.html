@@ -38,6 +38,8 @@
           <li class="level2"><a href="../expressions/binary.html">Parsing Binary Operations</a></li>
           <li class="level2"><a href="../expressions/recursion.html">Recursive Expressions</a></li>
           <li class="level1"><a href="../references.html">References</a></li>
+          <li class="level1"><a href="../context/index.html">Parsers in Context</a></li>
+          <li class="level2"><a href="../context/evaluation.html">Controlling Order of Evaluation</a></li>
         </ul>
     </nav>
 
@@ -62,6 +64,11 @@
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">pass</span><span>[</span><span class="type-name">A</span><span>](</span><span class="keyword">implicit</span><span> </span><span class="identifier">m</span><span>: </span><span class="type-name">Monoid</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]
 }</span></code></pre>
             <p>In addition, at lot of methods will be available via the type class instances you have created. </p>
+            <p>There are two big lessons here:</p>
+            <ul>
+              <li>we can use type classes as inspiration for designing APIs; and</li>
+              <li>we should also consider existing knowledge in a field</li>
+            </ul>
             <p>Let&#39;s now do something interesting with our parser library, which will show the power of what we&#39;ve done.</p>
             <p class="nextPage"><a href="../expressions/index.html">Parsing Expressions→</a></p>
         </main>

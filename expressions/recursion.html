@@ -38,6 +38,8 @@
           <li class="level2"><a href="binary.html">Parsing Binary Operations</a></li>
           <li class="level2 active"><a href="#">Recursive Expressions</a></li>
           <li class="level1"><a href="../references.html">References</a></li>
+          <li class="level1"><a href="../context/index.html">Parsers in Context</a></li>
+          <li class="level2"><a href="../context/evaluation.html">Controlling Order of Evaluation</a></li>
         </ul>
     </nav>
 
@@ -83,15 +85,15 @@
 // 	at parser.Parser$ParserOrElse.parse(Parser.scala:207)
 // 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)
 // 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)</span></code></pre>
-            <p>What the junk?! Our interpreter failed with a pattern match against <code>null</code>. How is this possible? Where could this <code>null</code> possibly have come from?</p>
-            <p>Let&#39;s see an simplified example that shows the behaviour we&#39;re seeing.</p>
+            <p>What the junk?! Our interpreter failed with a pattern match against <code>null</code>. How is this possible? Where did this <code>null</code> come from?</p>
+            <p>Let&#39;s see an simplified example showing the same behaviour we&#39;re seeing in our parser.</p>
             <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">a</span><span>: </span><span class="type-name">String</span><span> = {
   </span><span class="identifier">println</span><span>(</span><span class="string-literal">s&quot;a is </span><span class="substitution">$a</span><span class="string-literal">&quot;</span><span>)
   </span><span class="string-literal">&quot;Hello&quot;</span><span>
 }
 </span><span class="comment">// a is null
 // a: String = &quot;Hello&quot;</span></code></pre>
-            <p>Here we bind the name <code>a</code> to a <code>String</code>. In the right-hand side expression, where we compute the value of <code>a</code>, we also refer to <code>a</code> in the <code>println</code> expression. We see that this is possible, but the value of <code>a</code> is <code>null</code> at the time when we&#39;re computing the value of <code>a</code>. Once <code>a</code> is defined we get the value we expected, <code>&quot;Hello&quot;</code>, when we refer to it.</p>
+            <p>Here we bind the name <code>a</code> to a <code>String</code>. In the right-hand side expression, which computes the value of <code>a</code>, we also refer to <code>a</code> in the <code>println</code> expression. We see that this is possible, but the value of <code>a</code> is <code>null</code> at the time when we&#39;re computing the value of <code>a</code>. Once <code>a</code> is defined we get the value we expected, <code>&quot;Hello&quot;</code>, when we refer to it.</p>
             <p>This explains that issue we saw with our parser. The definition of <code>addition</code> refers to itself, and therefore we end up with a <code>null</code> value inside the parser we build.</p>
             <p>Let&#39;s try another approach. Instead of creating a value, we&#39;ll create a method that, when called, returns the parser. The parser will refer to the method but that&#39;s ok, because the method will already have been defined by the time it is called.</p>
             <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">addition2</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] =
@@ -105,21 +107,17 @@
 // and so on...</span></code></pre>
             <p>We get a stack overflow as soon as we reference <code>addition2</code>, before we attempt to parse anything. It should be reasonably obvious why this is the case: <code>addition2</code> is a recursive method with no base case to stop the recursion.</p>
             <p>It turns out we can solve this problem with a small addition to our current API. Before we go through this addition, let&#39;s talk about how it works. </p>
-            <p>We don&#39;t know in advance how many operations there will be in an expression. We could be looking for a single operation, as in <code>1 + 2</code>, or many more, as in <code>1 + 2 + 3 + 4 + 5</code>. We want to construct a parser that can handle an unbounded number of operations, but this seems to require a parser of infinite size. The solution is to realize that each expression has only a finite number of operations. If we can construct the parser as we need it then we can parse whatever expression we encounter.</p>
-            <p>That might sound good in theory, but what does it actually mean in practice? We need two parts:</p>
+            <p>We don&#39;t know in advance how many operations there will be in an expression. We could be looking for a single operation, as in <code>1 + 2</code>, or many more, as in <code>1 + 2 + 3 + 4 + 5</code>. We want to construct a parser that can handle an unbounded number of operations, but this seems to require a parser of infinite size. However, any given expression has only a finite number of operations and therefore requires a finite parser. Therefore we can parse arbitrary expressions by constructing the parser as we need it, so the parser is only as big as the expression we are parsing.</p>
+            <p>That sound goods, but what does it actually mean in practice? We need two parts:</p>
             <ol class="arabic">
               <li>a way to <em>delay</em> constructing a parser when we&#39;re building the parser; and</li>
+              <li>a change to the interpreter that evaluates delayed parsers, building the next incremental step.</li>
             </ol>
-            <ol class="arabic">
-              <li>
-                <p>a change to the interpreter that evaluates delayed parsers, building the next incremental step.</p>
-                <p>For the first we add a new constructor with a call-by-name parameter.</p>
-              </li>
-            </ol>
+            <p>For the first we add a new constructor with a call-by-name parameter.</p>
             <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">delay</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">parser</span><span>: =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] = ???
 }</span></code></pre>
-            <p>As usual we can implement this method using reification. However we must be careful in the implementation that we don&#39;t accidentally evaluate the parser. We do this by wrapping the parser in a no-argument function.</p>
+            <p>As usual we can implement this method using reification. However we must be careful in the implementation that we don&#39;t accidentally evaluate the call-by-name parameter. We do this by wrapping the parameter in a no-argument function.</p>
             <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">Parser</span><span> {
   </span><span class="keyword">final</span><span> </span><span class="keyword">case</span><span> </span><span class="keyword">class</span><span> </span><span class="type-name">ParserDelay</span><span>[</span><span class="type-name">A</span><span>](</span><span class="identifier">parser</span><span>: () =&gt; </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]) </span><span class="keyword">extends</span><span> </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>]
 
@@ -127,27 +125,12 @@
 }</span></code></pre>
             <p>In our interpreter we add a case for <code>ParserDelay</code> that evaluates the delayed parser.</p>
             <pre><code class="nohighlight"><span class="keyword">case</span><span> </span><span class="type-name">ParserDelay</span><span>(</span><span class="identifier">p</span><span>) =&gt; </span><span class="identifier">loop</span><span>(</span><span class="identifier">p</span><span>(), </span><span class="identifier">index</span><span>)</span></code></pre>
-            <p>With these components in place we can finally implement a working parser, by delaying the recursive part.</p>
+            <p>With these components in place we can finally implement a working parser, by simply delaying the recursive part.</p>
             <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">addition3</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] =
   (</span><span class="identifier">factor</span><span>, </span><span class="identifier">plus</span><span>, </span><span class="type-name">Parser</span><span>.</span><span class="identifier">delay</span><span>(</span><span class="identifier">addition3</span><span>)).</span><span class="identifier">mapN</span><span>((</span><span class="identifier">left</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">right</span><span>) =&gt; </span><span class="identifier">left</span><span> + </span><span class="identifier">right</span><span>).</span><span class="identifier">orElse</span><span>(</span><span class="identifier">factor</span><span>)</span></code></pre>
-            <pre><code class="nohighlight"><span class="identifier">addition3</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 + 2&quot;</span><span>)
+            <p>We can see this works with an arbitrary number of operations.</p>
+            <pre><code class="nohighlight"><span class="identifier">addition3</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 + 2 + 3 + 4 + 5&quot;</span><span>)
 </span><span class="comment">// res1: Result[Expression] = Success(
-//   result = Add(left = Literal(value = 1), right = Literal(value = 2)),
-//   input = &quot;1 + 2&quot;,
-//   offset = 5
-// )</span></code></pre>
-            <p>We can see this works with arbitrary number of operations.</p>
-            <pre><code class="nohighlight"><span class="identifier">addition3</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 + 2 + 3&quot;</span><span>)
-</span><span class="comment">// res2: Result[Expression] = Success(
-//   result = Add(
-//     left = Literal(value = 1),
-//     right = Add(left = Literal(value = 2), right = Literal(value = 3))
-//   ),
-//   input = &quot;1 + 2 + 3&quot;,
-//   offset = 9
-// )
-</span><span class="identifier">addition3</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 + 2 + 3 + 4 + 5&quot;</span><span>)
-</span><span class="comment">// res3: Result[Expression] = Success(
 //   result = Add(
 //     left = Literal(value = 1),
 //     right = Add(
@@ -170,7 +153,7 @@
 </span><span class="keyword">val</span><span> </span><span class="identifier">expression</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] = 
   (</span><span class="identifier">term</span><span>, </span><span class="identifier">plus</span><span>, </span><span class="type-name">Parser</span><span>.</span><span class="identifier">delay</span><span>(</span><span class="identifier">expression</span><span>)).</span><span class="identifier">mapN</span><span>((</span><span class="identifier">left</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">right</span><span>) =&gt; </span><span class="identifier">left</span><span> + </span><span class="identifier">right</span><span>).</span><span class="identifier">orElse</span><span>(</span><span class="identifier">term</span><span>)</span></code></pre>
             <pre><code class="nohighlight"><span class="identifier">expression</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 * 2 + 3 * 4&quot;</span><span>)
-</span><span class="comment">// res4: Result[Expression] = Success(
+</span><span class="comment">// res2: Result[Expression] = Success(
 //   result = Multiply(
 //     left = Literal(value = 1),
 //     right = Add(
@@ -181,9 +164,6 @@
 //   input = &quot;1 * 2 + 3 * 4&quot;,
 //   offset = 13
 // )</span></code></pre>
-            
-            <h3 id="controlling-order-of-evaluation" class="section">Controlling Order of Evaluation</h3>
-            <p>What we&#39;ve seen is a general principle for handling recursive structures, and an extension of Scala&#39;s call-by-name parameters. Call-by-name parameters are not evaluated until they are referred to, but this is not sufficient for our purposes. Putting the value into a data structure counts as a reference, which would cause evaluation. We&#39;ve extended call-by-name parameters to delay evaluation to a point of our choosing, by wrapping the parameter in a zero-argument function. With this technique we have complete control over the order of evaluation. What we&#39;ve implement, in the <code>Parser</code> interpreter, is call-by-name evaluation for delayed parsers. (Note the subtle difference: this is call-by-name evaluation, which is more general than call-by-name parameters.) The distinguishing feature of call-by-name evaluation is that we evaluate delayed values every time they are referred to (which is exactly what our interpreter does). In contrast, call-by-need (also known as lazy evaluation) evaluates the delayed value the first time it is referred to, and stores the result for future use. Call-by-value (also known as eager evaluation) is the default in Scala and has no delayed values.</p>
             <p class="nextPage"><a href="../references.html">References→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
