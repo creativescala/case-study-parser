@@ -17,7 +17,7 @@ Let's start with the atomic elements: numbers and variables. We can use the foll
 
 This naturally requires us to define digits and alphabetic characters:
 
-- a digit is the character `0`, `1`, `2,`, `3`, `4`, `5`, `6`, `7`, `8`, or `9`; and
+- a digit is the character `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, or `9`; and
 - an alphabetic character is one of the lowercase characters between `a` and `z`. 
 
 This is sufficient for us to start writing parsers. I'll get you started.
@@ -38,7 +38,7 @@ Now you go ahead and implement parsers for digits and literals.
 
 ### Abstract Syntax Trees
 
-Now we can parse very very simple expressions, we should create a data structure that stores the result of our parse. In the compiler literature these data structures are known as *abstract syntax trees* (ASTs). They represent the syntax of the input we parsed, and are usually organized as a tree. In Scala we usually represent abstract syntax trees as algebraic data types (ADTs).
+Now we can parse very simple expressions, we should create a data structure that stores the result of our parse. In the compiler literature these data structures are known as *abstract syntax trees* (ASTs). They represent the syntax of the input we parsed, and are usually organized as a tree. In Scala we usually represent abstract syntax trees as algebraic data types (ADTs).
 
 Here's an AST, which is also an ADT, for representing the expressions we described above:
 
