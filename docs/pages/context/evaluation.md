@@ -5,8 +5,8 @@ The technique we used to implement recursive parsers is a general technique for 
 In this section we will:
 
 - touch on a classic application of this idea;
-- discuss how it relates to order of evaluation; and
-- computation vs data
+- discuss how it relates to order of evaluation;
+- discuss how it relates to ideas of computation vs data; and
 - provide some references where you can learn more.
 
 
@@ -35,7 +35,7 @@ final case class Empty[A]() extends InfiniteList[A]
 final case class Pair[A](head: A, tail: Delay[InfiniteList[A]]) extends InfiniteList[A]
 ```
 
-We can define an infinite list of ones as follows.
+As an example we can create an infinite list of ones as follows.
 
 ```scala mdoc:silent
 val ones: InfiniteList[Int] = Pair(1, Delay(() => ones))
@@ -91,7 +91,7 @@ object InfiniteList {
 }
 ```
 
-Now we can do some fun things. First let's see that a finite portion of the infinite list of ones is all ones.
+Now we can do some fun things. First let's see that a finite portion of the infinite list of ones really is all ones.
 
 ```scala mdoc:silent
 val ones: InfiniteList[Int] = InfiniteList(1, Delay(ones))
@@ -100,19 +100,49 @@ val ones: InfiniteList[Int] = InfiniteList(1, Delay(ones))
 ones.take(5)
 ```
 
-We can `map` our infinte list, and see that a finite portion is transformed as we expect.
+It seems that our definition has worked.
+
+We can `map` our infinite list, and see that a finite portion is transformed as we expect.
 
 ```scala mdoc
 ones.map(_ + 2).take(5)
 ```
 
-, and an extension of Scala's call-by-name parameters. Call-by-name parameters are not evaluated until they are referred to, but this is not sufficient for our purposes. Putting the value into a data structure counts as a reference, which would cause evaluation. We've extended call-by-name parameters to delay evaluation to a point of our choosing, by wrapping the parameter in a zero-argument function. With this technique we have complete control over the order of evaluation. What we've implement, in the `Parser` interpreter, is call-by-name evaluation for delayed parsers. (Note the subtle difference: this is call-by-name evaluation, which is more general than call-by-name parameters.) The distinguishing feature of call-by-name evaluation is that we evaluate delayed values every time they are referred to (which is exactly what our interpreter does). In contrast, call-by-need (also known as lazy evaluation) evaluates the delayed value the first time it is referred to, and stores the result for future use. Call-by-value (also known as eager evaluation) is the default in Scala and has no delayed values.
+Finally, let's define the infinite list of natural numbers using only `ones` defined above.
+
+```scala mdoc:silent
+val naturals: InfiniteList[Int] = 
+  InfiniteList(1, Delay(ones.zip(naturals).map{ case (a, b) => a + b }))
+```
+```scala mdoc
+naturals.take(5)
+```
+
+I suggest making sure you're comfortable with `naturals` before reading on.
 
 
-How to add laziness to a strict language without even being odd
-Philip Wadler, Walid Taha, David MacQueen, 1998
-https://www.diva-portal.org/smash/get/diva2:413532/FULLTEXT01.pdf
+### Order of Evaluation
 
-Reasoning about Codata
-Ralf Hinze, 2009
-https://www.cs.ox.ac.uk/ralf.hinze/publications/CEFP09.pdf
+We've seen how we can implement our `InfiniteList` using call-by-name parameters and further delaying evaluation using a no-argument function. Every time we need the delayed value, we evaluate the no-argument function. This general technique is known as call-by-name evaluation. (Note the subtle difference: this is call-by-name *evaluation*, which is more general than call-by-name *parameters*.)
+
+Call-by-name evaluation is not the only possibility. We could evaluate the delayed value the first time it is referred to, and store the result for future use. If we evaluate the delayed value again we just use the stored value, and so avoid repeating the work at the cost of using a bit more memory. This is known as call-by-value or lazy evaluation.
+
+Call-by-value (also known as eager evaluation) is the default in Scala and has no delayed values.
+
+
+### Computation and Data
+
+One way of looking at call-by-name versus call-by-value is to consider that we can represent data instead by the program that generates that data or vice versa. This perspective is useful in many different contexts. For example, a cache uses data to avoid computation. Compression uses a program (the decompression algorithm) to avoid data. These ideas lead to [algorithmic information theory](https://en.wikipedia.org/wiki/Algorithmic_information_theory) and [Kolmogorov complexity](https://en.wikipedia.org/wiki/Kolmogorov_complexity).
+
+A different perspective comes from programming language theory, which distinguishes data from codata, and recursion from corecursion. Data is finite, while codata is infinite. `InfiniteList` is an example of codata. We have already know lots about data. For algebraic data we've see that, for example, structural recursion allows us to easily manipulate and transform it. There are similar patterns of corecursion for codata, but these techniques are much less well known.
+
+
+### Further Reading
+
+I first learned about infinite lists from [SICP](https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/full-text/book/book-Z-H-24.html#%_sec_3.5). SICP is a classic, but it is a long book, leans heavily on electrical engineering and mathematical examples, and is rather old at this point. I read SICP at exactly the right time in my life (I had just graduated with a computer engineering degree and I had a regular train ride on which to read it) and it blew my mind. However it's not for everyone.
+
+[PLAI](https://www.plai.org/) covers much of the important bits of SICP in a more modern form, and contains no diversions into electrical engineering.
+
+The `InfiniteList` we defined above is equivalent to [`Stream`](https://www.scala-lang.org/api/current/scala/collection/immutable/Stream.html) in the Scala standard library. It is now deprecated in favour of [`LazyList`](https://www.scala-lang.org/api/current/scala/collection/immutable/LazyList.html). This is because `InfiniteList` / `Stream` always evaluates the head of the list. This makes it easier to implement but causes some problems in practice. The `InfiniteList` / `Stream` implementation is implemented in the "odd" style, while `LazyList` is "even". This terminology comes from [How to add laziness to a strict language without even being odd](https://www.diva-portal.org/smash/get/diva2:413532/FULLTEXT01.pdf), which describes the problem and the solution in more detail.
+
+[WTF is Corecursion](https://edward-huang.com/functional-programming/algorithm/programming/scala/2020/08/02/wtf-is-corecursion/) is a very accessible introduction to corecursion that uses Scala. [Corecursion and coinduction: what they are and how they relate to recursion and induction](https://www.cl.cam.ac.uk/archive/mjcg/plans/Coinduction.html) has much more detail but is still quite readable. [The Under-Appreciated Unfold](https://dl.acm.org/doi/pdf/10.1145/289423.289455) goes into detail of `unfold`, which is the corecursive equivalent of `fold`. Finally, [Reasoning about Codata](https://www.cs.ox.ac.uk/ralf.hinze/publications/CEFP09.pdf) has more theory while remaining somewhat readable without a large amount of specialist background.
