@@ -47,7 +47,7 @@
         <main class="content">
             <h1 id="recursive-expressions" class="title">Recursive Expressions</h1>
             <p>In the previous section we looked at expressions limited to a single operator with two arguments. We&#39;re now going to extend that to handle expressions with an arbitrary number of operators.</p>
-            <p>We can try writing such a parser right now. We&#39;ll start by defining the basic parsers using the methods I added at the end of the previous section.</p>
+            <p>We can try writing such a parser right now. We&#39;ll start by redefining the basic parsers using the methods I added at the end of the previous section.</p>
             <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">parser</span><span>.</span><span class="identifier">_</span><span>
 
@@ -65,7 +65,7 @@
   </span><span class="identifier">numeric</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">toString</span><span>).</span><span class="identifier">oneOrMore</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">str</span><span> =&gt; </span><span class="type-name">Expression</span><span>.</span><span class="identifier">literal</span><span>(</span><span class="identifier">str</span><span>.</span><span class="identifier">toInt</span><span>))
   
 </span><span class="keyword">val</span><span> </span><span class="identifier">whitespace</span><span> = </span><span class="type-name">Parser</span><span>.</span><span class="identifier">oneCharOf</span><span>(</span><span class="char-literal">&#39; &#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\t</span><span class="char-literal">&#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\n</span><span class="char-literal">&#39;</span><span>).</span><span class="identifier">void</span><span>.</span><span class="identifier">zeroOrMore</span></code></pre>
-            <p>Now we can attempt to define parser for expressions with arbitrary expressions. To start with, let&#39;s just consider addition.</p>
+            <p>Now we can attempt to define a parser for expressions with an arbitrary number of operations. To start with, let&#39;s just consider addition. We will add multiplication later.</p>
             <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">factor</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] = </span><span class="identifier">variable</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="identifier">number</span><span>)
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">plus</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Char</span><span>] = </span><span class="identifier">whitespace</span><span> *&gt; </span><span class="type-name">Parser</span><span>.</span><span class="identifier">char</span><span>(</span><span class="char-literal">&#39;+&#39;</span><span>) &lt;* </span><span class="identifier">whitespace</span><span>
