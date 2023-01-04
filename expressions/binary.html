@@ -61,7 +61,7 @@
             </ul>
             <p>This naturally requires us to define digits and alphabetic characters:</p>
             <ul>
-              <li>a digit is the character <code>0</code>, <code>1</code>, <code>2,</code>, <code>3</code>, <code>4</code>, <code>5</code>, <code>6</code>, <code>7</code>, <code>8</code>, or <code>9</code>; and</li>
+              <li>a digit is the character <code>0</code>, <code>1</code>, <code>2</code>, <code>3</code>, <code>4</code>, <code>5</code>, <code>6</code>, <code>7</code>, <code>8</code>, or <code>9</code>; and</li>
               <li>an alphabetic character is one of the lowercase characters between <code>a</code> and <code>z</code>. </li>
             </ul>
             <p>This is sufficient for us to start writing parsers. I&#39;ll get you started.</p>
@@ -76,7 +76,7 @@
             <p>Now you go ahead and implement parsers for digits and literals.</p>
             
             <h3 id="abstract-syntax-trees" class="section">Abstract Syntax Trees</h3>
-            <p>Now we can parse very very simple expressions, we should create a data structure that stores the result of our parse. In the compiler literature these data structures are known as <em>abstract syntax trees</em> (ASTs). They represent the syntax of the input we parsed, and are usually organized as a tree. In Scala we usually represent abstract syntax trees as algebraic data types (ADTs).</p>
+            <p>Now we can parse very simple expressions, we should create a data structure that stores the result of our parse. In the compiler literature these data structures are known as <em>abstract syntax trees</em> (ASTs). They represent the syntax of the input we parsed, and are usually organized as a tree. In Scala we usually represent abstract syntax trees as algebraic data types (ADTs).</p>
             <p>Here&#39;s an AST, which is also an ADT, for representing the expressions we described above:</p>
             <pre><code class="nohighlight"><span class="keyword">sealed</span><span> </span><span class="keyword">trait</span><span> </span><span class="type-name">Expression</span><span> {
   </span><span class="keyword">import</span><span> </span><span class="type-name">Expression</span><span>.</span><span class="identifier">_</span><span>
