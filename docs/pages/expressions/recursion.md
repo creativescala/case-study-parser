@@ -23,7 +23,7 @@ object Expression {
 
 In the previous section we looked at expressions limited to a single operator with two arguments. We're now going to extend that to handle expressions with an arbitrary number of operators.
 
-We can try writing such a parser right now. We'll start by defining the basic parsers using the methods I added at the end of the previous section.
+We can try writing such a parser right now. We'll start by redefining the basic parsers using the methods I added at the end of the previous section.
 
 ```scala mdoc:silent
 import cats.implicits._
@@ -45,7 +45,7 @@ val number: Parser[Expression] =
 val whitespace = Parser.oneCharOf(' ', '\t', '\n').void.zeroOrMore
 ```
 
-Now we can attempt to define parser for expressions with arbitrary expressions. To start with, let's just consider addition.
+Now we can attempt to define a parser for expressions with an arbitrary number of operations. To start with, let's just consider addition. We will add multiplication later.
 
 ```scala mdoc:silent
 val factor: Parser[Expression] = variable.orElse(number)
