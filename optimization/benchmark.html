@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Laika 0.19.0" />
+    <title>Benchmarking</title>
+    
+    
+    <meta name="description" content="docs" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400|Source+Sans+Pro:300,400,600"
+        rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Crimson+Pro:400" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="../creative-scala.css" />
+    <script> /* for avoiding page load transitions */</script>
+</head>
+
+<body>
+    <nav id="topbar"><p><a href="index.html">←</a></p>
+<p><a href="../../">Case Study: Parsing</a></p>
+<p><a href="../context/index.html">→</a></p></nav>
+    <nav id="sidebar">
+        <ul class="nav-list">
+          <li class="level1"><a href="../index.html">Case Study: Parsing</a></li>
+          <li class="level1"><a href="../basics.html">The Simplest Parser</a></li>
+          <li class="level1"><a href="../testing.html">Testing Parsers</a></li>
+          <li class="level1"><a href="../type-classes/index.html">Designing Using Type Classes</a></li>
+          <li class="level2"><a href="../type-classes/functor.html">Functor</a></li>
+          <li class="level2"><a href="../type-classes/monoid.html">Monoid</a></li>
+          <li class="level2"><a href="../type-classes/applicative.html">Applicative</a></li>
+          <li class="level2"><a href="../type-classes/monad.html">Monad</a></li>
+          <li class="level2"><a href="../type-classes/kleene.html">Kleene Star</a></li>
+          <li class="level2"><a href="../type-classes/conclusions.html">Conclusions</a></li>
+          <li class="level1"><a href="../expressions/index.html">Parsing Expressions</a></li>
+          <li class="level2"><a href="../expressions/binary.html">Parsing Binary Operations</a></li>
+          <li class="level2"><a href="../expressions/recursion.html">Recursive Expressions</a></li>
+          <li class="level2"><a href="../expressions/json.html">Parsing JSON</a></li>
+          <li class="level2"><a href="../expressions/conclusions.html">Conclusions</a></li>
+          <li class="level1"><a href="index.html">Benchmarks and Optimization</a></li>
+          <li class="level2 active"><a href="#">Benchmarking</a></li>
+          <li class="level1"><a href="../context/index.html">Parsers in Context</a></li>
+          <li class="level2"><a href="../context/evaluation.html">Controlling Order of Evaluation</a></li>
+          <li class="level1"><a href="../references.html">References</a></li>
+        </ul>
+    </nav>
+
+    <div id="content">
+        <main class="content">
+            <h1 id="benchmarking" class="title">Benchmarking</h1>
+            <p>One very common parsing operation is to collect all consecutive characters that meet some condition. For example, the parser below collects all consecutive digits, and can be used to parse integers.</p>
+            <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">digit</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Char</span><span>] =
+  </span><span class="type-name">Parser</span><span>.</span><span class="identifier">oneCharOf</span><span>(</span><span class="char-literal">&#39;0&#39;</span><span>, </span><span class="char-literal">&#39;1&#39;</span><span>, </span><span class="char-literal">&#39;2&#39;</span><span>, </span><span class="char-literal">&#39;3&#39;</span><span>, </span><span class="char-literal">&#39;4&#39;</span><span>, </span><span class="char-literal">&#39;5&#39;</span><span>, </span><span class="char-literal">&#39;6&#39;</span><span>, </span><span class="char-literal">&#39;7&#39;</span><span>, </span><span class="char-literal">&#39;8&#39;</span><span>, </span><span class="char-literal">&#39;9&#39;</span><span>)
+
+</span><span class="keyword">val</span><span> </span><span class="identifier">number</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
+  </span><span class="identifier">digit</span><span>.</span><span class="identifier">map</span><span>(</span><span class="identifier">_</span><span>.</span><span class="identifier">toString</span><span>).</span><span class="identifier">oneOrMore</span></code></pre>
+            <p>I decided to start benchmarking with this common case. I created four benchmarks, which you can find in <code>benchmarks/src/main/scala/RepeatBenchmark.scala</code>:</p>
+            <ol class="arabic">
+              <li><code>numberParser</code> measures the baseline performance of the parser combinator library;</li>
+              <li><code>numberPatternLoop</code> measures the same algorithm written without the parser combinator framework, giving an idea of the overhead of combinator library adds;</li>
+              <li><code>numberCharacterClassLoop</code> replaces the explicit conditional with a call to the <code>isDigit</code> method on <code>Char</code>; and</li>
+              <li><code>numberPatternStringBuilderLoop</code> measures the effect of using a <code>StringBuilder</code> instead of concatenating <code>Strings</code> in <code>numberPatternLoop</code></li>
+            </ol>
+            <p>Results from my benchmark run are given below. The absolute values don&#39;t matter. What is important is the relative differences in performance. I&#39;ve ordered the results from slowest to fastest.</p>
+            <pre><code>[info] Benchmark                                        Mode  Cnt        Score        Error  Units
+[info] RepeatBenchmark.numberParser                    thrpt   25   181950.007 ±   1698.243  ops/s
+[info] RepeatBenchmark.numberPatternLoop               thrpt   25  2583254.936 ± 285273.465  ops/s
+[info] RepeatBenchmark.numberCharacterClassLoop        thrpt   25  3278595.556 ±  21373.975  ops/s
+[info] RepeatBenchmark.numberPatternStringBuilderLoop  thrpt   25  6619869.553 ±  54507.164  ops/s</code></pre>
+            <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
+        </main>
+        <footer>Creative Scala is copyright Noel Welsh</footer>
+    </div>
+
+    </div>
+</body>
+
+</html>
