@@ -17,7 +17,20 @@ I decided to start benchmarking with this common case. I created four benchmarks
 3. `numberCharacterClassLoop` replaces the explicit conditional with a call to the `isDigit` method on `Char`; and
 4. `numberPatternStringBuilderLoop` measures the effect of using a `StringBuilder` instead of concatenating `Strings` in `numberPatternLoop`
 
-Results from my benchmark run are given below. The absolute values don't matter. What is important is the relative differences in performance. I've ordered the results from slowest to fastest.
+You can run the benchmarks using the following `sbt` commands:
+
+- `project benchmarks` to change into the benchmarks projects within sbt; and
+- `Jmh / run` to run the benchmarks with the default JMH settings.
+
+The benchmarks will take quite a while to run, which is good for getting accurate results but not for quick iteration of optimizations. The command `Jmh / run -h` will output the many arguments you can pass to JMH to change how it runs the benchmarks. Using `Jmh / run -i 1 -wi 1` will run many fewer iterations, giving results much faster at the cost of inaccuracy in measurements.
+
+Results from my benchmark run are below. I've ordered the results from slowest to fastest. The absolute values don't matter; what is important is the relative differences in performance. 
+
+We can see:
+
+- the parser combinator approach is at least an order of magnitude slower than any other approach, suggesting the combinator library adds significant overhead;
+- using a `StringBuilder` is about twice as fast as concatenating `Strings`; and
+- using the character class method `isDigit` is a slight improvement over the explicit test.
 
 ```
 [info] Benchmark                                        Mode  Cnt        Score        Error  Units
@@ -26,3 +39,5 @@ Results from my benchmark run are given below. The absolute values don't matter.
 [info] RepeatBenchmark.numberCharacterClassLoop        thrpt   25  3278595.556 ±  21373.975  ops/s
 [info] RepeatBenchmark.numberPatternStringBuilderLoop  thrpt   25  6619869.553 ±  54507.164  ops/s
 ```
+
+We can use these findings to inform API design and internal optimizations.
