@@ -63,12 +63,25 @@
               <li><code>numberCharacterClassLoop</code> replaces the explicit conditional with a call to the <code>isDigit</code> method on <code>Char</code>; and</li>
               <li><code>numberPatternStringBuilderLoop</code> measures the effect of using a <code>StringBuilder</code> instead of concatenating <code>Strings</code> in <code>numberPatternLoop</code></li>
             </ol>
-            <p>Results from my benchmark run are given below. The absolute values don&#39;t matter. What is important is the relative differences in performance. I&#39;ve ordered the results from slowest to fastest.</p>
+            <p>You can run the benchmarks using the following <code>sbt</code> commands:</p>
+            <ul>
+              <li><code>project benchmarks</code> to change into the benchmarks projects within sbt; and</li>
+              <li><code>Jmh / run</code> to run the benchmarks with the default JMH settings.</li>
+            </ul>
+            <p>The benchmarks will take quite a while to run, which is good for getting accurate results but not for quick iteration of optimizations. The command <code>Jmh / run -h</code> will output the many arguments you can pass to JMH to change how it runs the benchmarks. Using <code>Jmh / run -i 1 -wi 1</code> will run many fewer iterations, giving results much faster at the cost of inaccuracy in measurements.</p>
+            <p>Results from my benchmark run are below. I&#39;ve ordered the results from slowest to fastest. The absolute values don&#39;t matter; what is important is the relative differences in performance. </p>
+            <p>We can see:</p>
+            <ul>
+              <li>the parser combinator approach is at least an order of magnitude slower than any other approach, suggesting the combinator library adds significant overhead;</li>
+              <li>using a <code>StringBuilder</code> is about twice as fast as concatenating <code>Strings</code>; and</li>
+              <li>using the character class method <code>isDigit</code> is a slight improvement over the explicit test.</li>
+            </ul>
             <pre><code>[info] Benchmark                                        Mode  Cnt        Score        Error  Units
 [info] RepeatBenchmark.numberParser                    thrpt   25   181950.007 ±   1698.243  ops/s
 [info] RepeatBenchmark.numberPatternLoop               thrpt   25  2583254.936 ± 285273.465  ops/s
 [info] RepeatBenchmark.numberCharacterClassLoop        thrpt   25  3278595.556 ±  21373.975  ops/s
 [info] RepeatBenchmark.numberPatternStringBuilderLoop  thrpt   25  6619869.553 ±  54507.164  ops/s</code></pre>
+            <p>We can use these findings to inform API design and internal optimizations.</p>
             <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
