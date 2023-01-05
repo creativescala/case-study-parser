@@ -58,6 +58,11 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
     )
   )
 
+lazy val benchmarks = project
+  .in(file("benchmarks"))
+  .enablePlugins(JmhPlugin)
+  .dependsOn(core.jvm)
+
 lazy val docs = project
   .in(file("site"))
   .settings(
