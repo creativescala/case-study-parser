@@ -51,7 +51,44 @@
     <div id="content">
         <main class="content">
             <h1 id="designing-for-performance" class="title">Designing for Performance</h1>
-            <p>Our benchmarks suggest changes to our API that will improve performance. </p>
+            <p>In this section we&#39;ll see how we can change our parser design to make it more efficient. Our benchmarks suggest two changes:</p>
+            <ol class="arabic">
+              <li>allow filtering of characters based on a predicate function; and</li>
+              <li>allow more efficient ways of accumulating results than concatenating <code>Strings</code>.</li>
+            </ol>
+            
+            <h3 id="filtering-characters" class="section">Filtering Characters</h3>
+            <p>We&#39;ve seen that using the <code>isDigit</code> method is slightly more efficient than a conditional. It&#39;s also much more convenient! This seems like something our library should directly support.</p>
+            <p>Implement the method</p>
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">charWhere</span><span>(</span><span class="identifier">predicate</span><span>: </span><span class="type-name">Char</span><span> =&gt; </span><span class="type-name">Boolean</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Char</span><span>]</span></code></pre>
+            <p>and benchmark a new parser built using this instead of <code>charIn</code>.</p>
+            <p>Here are my benchmark results. You can see it&#39;s about ten times faster than the original parser! This is definitely an optimization that has paid for itself. </p>
+            <pre><code>[info] Benchmark                                        Mode  Cnt        Score        Error  Units
+[info] RepeatBenchmark.numberParser                    thrpt   25   181549.442 ±   5097.457  ops/s
+[info] RepeatBenchmark.numberWhereParser               thrpt   25  1136272.063 ±  42800.845  ops/s</code></pre>
+            <p>You might have noticed that <code>Parser.char</code> can be implemented in terms of <code>Parser.charWhere</code>, which would simplify our interpreter but perhaps make it slower. Try this change and see if the benchmarks suggest it is harmful for performance.</p>
+            
+            <h3 id="efficiently-accumulating-results" class="section">Efficiently Accumulating Results</h3>
+            <p>We currently rely on a <code>Monoid</code> instance to accumulate results in <code>oneOrMore</code> and other combinators. There is no <code>Monoid</code> for <code>Char</code>, so we first convert to a <code>String</code> and then use the instance for that type. Our benchmarks show that this is inefficient. Using a <code>StringBuffer</code>, to which we can directly append <code>Chars</code>, performs much better. Our challenge is to redesign our API to allow for more efficiency while keeping the generality we currently have.</p>
+            <p>If we analyse the solution using <code>StringBuffer</code> we three operations:</p>
+            <ul>
+              <li>creating the <code>StringBuffer</code>;</li>
+              <li>appending a <code>Char</code> to the <code>StringBuffer</code>; and</li>
+              <li>retrieving the <code>String</code> from the <code>StringBuffer</code> when we&#39;ve finished.</li>
+            </ul>
+            <p>We can abstract this to:</p>
+            <ul>
+              <li>a constructor <code>() =&gt; Accum</code>;</li>
+              <li>an appender <code>(Accum, A) =&gt; Accum</code>; and</li>
+              <li>a retrieval <code>Accum =&gt; B</code>.</li>
+            </ul>
+            <p>(The combiner looks like the type of function we pass to <code>foldLeft</code>. This is no coincidence. This type of function, along with some additional structure on <code>A</code>, is known as a monoid action.)</p>
+            <p>We can represent this as a type class</p>
+            <pre><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">Input</span><span>, </span><span class="type-name">Accum</span><span>, </span><span class="type-name">Output</span><span>] {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">create</span><span>: </span><span class="type-name">Accum</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">append</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>, </span><span class="identifier">in</span><span>: </span><span class="type-name">Input</span><span>): </span><span class="type-name">Accum</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">retrieve</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>): </span><span class="type-name">Output</span><span>
+}</span></code></pre>
             <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
