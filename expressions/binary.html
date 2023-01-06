@@ -109,22 +109,22 @@
             <p>Our next step is to parse the binary operations <code>+</code> and <code>*</code>. You might already see how to do this. If so, try it yourself before reading on. If not, I&#39;ll show how to implement a parser for addition. Multiplication is a straightforward modification of it.</p>
             <p>An addition is a literal or variable, followed by the addition sign, followed by another literal or variable. The actually not entirely correct. There can be whitespace separating any of these elements, and our parser needs to account for that. </p>
             <p>Here&#39;s my implementation.</p>
-            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">oneOf</span><span>(</span><span class="identifier">char</span><span>: </span><span class="type-name">Char</span><span>, </span><span class="identifier">chars</span><span>: </span><span class="type-name">Chars</span><span>*): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">charIn</span><span>(</span><span class="identifier">char</span><span>: </span><span class="type-name">Char</span><span>, </span><span class="identifier">chars</span><span>: </span><span class="type-name">Chars</span><span>*): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
   </span><span class="identifier">chars</span><span>.</span><span class="identifier">foldLeft</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">char</span><span>.</span><span class="identifier">toString</span><span>)){ (</span><span class="identifier">parser</span><span>, </span><span class="identifier">char</span><span>) =&gt;
     </span><span class="identifier">parser</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">char</span><span>.</span><span class="identifier">toString</span><span>)) 
   }
   
-</span><span class="keyword">val</span><span> </span><span class="identifier">whitespace</span><span> = </span><span class="identifier">oneOf</span><span>(</span><span class="char-literal">&#39; &#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\t</span><span class="char-literal">&#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\n</span><span class="char-literal">&#39;</span><span>).</span><span class="identifier">repeat</span><span>
+</span><span class="keyword">val</span><span> </span><span class="identifier">whitespace</span><span> = </span><span class="identifier">charIn</span><span>(</span><span class="char-literal">&#39; &#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\t</span><span class="char-literal">&#39;</span><span>, </span><span class="char-literal">&#39;</span><span class="escape-sequence">\n</span><span class="char-literal">&#39;</span><span>).</span><span class="identifier">repeat</span><span>
 
 </span><span class="keyword">val</span><span> </span><span class="identifier">factor</span><span>: </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Expression</span><span>] = </span><span class="identifier">literal</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="identifier">variable</span><span>)
 
-</span><span class="keyword">val</span><span> </span><span class="identifier">addition</span><span> = (</span><span class="identifier">factor</span><span>, (</span><span class="identifier">whitespace</span><span> *&gt; </span><span class="identifier">oneOf</span><span>(</span><span class="char-literal">&#39;+&#39;</span><span>) &lt;* </span><span class="identifier">whitespace</span><span>), </span><span class="identifier">factor</span><span>)
+</span><span class="keyword">val</span><span> </span><span class="identifier">addition</span><span> = (</span><span class="identifier">factor</span><span>, (</span><span class="identifier">whitespace</span><span> *&gt; </span><span class="identifier">charIn</span><span>(</span><span class="char-literal">&#39;+&#39;</span><span>) &lt;* </span><span class="identifier">whitespace</span><span>), </span><span class="identifier">factor</span><span>)
                  .</span><span class="identifier">mapN</span><span>((</span><span class="identifier">l</span><span>, </span><span class="identifier">_</span><span>, </span><span class="identifier">r</span><span>) =&gt; </span><span class="identifier">l</span><span> + </span><span class="identifier">r</span><span>)</span></code></pre>
             <p>A few points:</p>
             <ul>
               <li>I defined a parser <code>factor</code> to refer to a literal or a variable.</li>
-              <li>I created a utility method, <code>oneOf</code>, to make creating parsers easier.</li>
-              <li>I&#39;ve also used <code>mapN</code>, <code>*&gt;</code>, and <code>&lt;*</code>, which are methods defined by Cats for all applicatives, to make the code a bit more compact. You should be familiar with <code>mapN</code>, but <code>*&gt;</code> and <code>&lt;*</code> may be new to you. The way to read them is as binary operations that only keep the value pointed to by the arrow. So in <code>whitespace *&gt; oneOf(&#39;+&#39;) &lt;* whitespace</code> I only keep the result of parsing the <code>+</code> and discard the result of parsing any whitespace. These methods are on the edge for me: they are not so well known that I feel confident using them in all codebases. In this context, though, it&#39;s an opportunity for you learn so I&#39;ve used them.</li>
+              <li>I created a utility method, <code>charIn</code>, to make creating parsers easier.</li>
+              <li>I&#39;ve also used <code>mapN</code>, <code>*&gt;</code>, and <code>&lt;*</code>, which are methods defined by Cats for all applicatives, to make the code a bit more compact. You should be familiar with <code>mapN</code>, but <code>*&gt;</code> and <code>&lt;*</code> may be new to you. The way to read them is as binary operations that only keep the value pointed to by the arrow. So in <code>whitespace *&gt; charIn(&#39;+&#39;) &lt;* whitespace</code> I only keep the result of parsing the <code>+</code> and discard the result of parsing any whitespace. These methods are on the edge for me: they are not so well known that I feel confident using them in all codebases. In this context, though, it&#39;s an opportunity for you learn so I&#39;ve used them.</li>
             </ul>
             
             <h3 id="lessons-on-api-design" class="section">Lessons on API Design</h3>
@@ -134,7 +134,7 @@
                 <p>We have to use a <code>Parser[String]</code> just to look for a single <code>Char</code>. A <code>String</code> contains 0 or more characters, while a <code>Char</code> is exactly one character. It would be better if could use the more precise type <code>Char</code> when we want exactly one <code>Char</code>.</p>
               </li>
               <li>
-                <p><code>oneOf</code> is the kind of method that should be provided by our parser library, as it&#39;s a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we&#39;re looking for, and one where we specify a predicate that is <code>true</code> if the character is one we&#39;re looking for.</p>
+                <p><code>charIn</code> is the kind of method that should be provided by our parser library, as it&#39;s a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we&#39;re looking for, and one where we specify a predicate that is <code>true</code> if the character is one we&#39;re looking for.</p>
               </li>
               <li>
                 <p>The construction <code>parser.and(parser.repeat)</code> is an inconvenient way to express one or more repetitions of a parser, and is certainly a bit opaque to someone new to the library. This operation is sometimes known as the Kleene plus and is very common. We should consider directly supporting it.</p>
@@ -144,8 +144,8 @@
             <p>I added the following constructors:</p>
             <ul>
               <li><code>Parser.char(value: Char): Parser[Char]</code></li>
-              <li><code>Parser.oneCharOf(char: Char, chars: Char*): Parser[Char]</code></li>
-              <li><code>Parser.oneStringOf(string: String, strings: String*): Parser[String]</code></li>
+              <li><code>Parser.charIn(char: Char, chars: Char*): Parser[Char]</code></li>
+              <li><code>Parser.stringIn(string: String, strings: String*): Parser[String]</code></li>
             </ul>
             <p>I then reworked the <code>repeat</code> combinator:</p>
             <ul>
