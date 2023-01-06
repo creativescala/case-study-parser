@@ -1,12 +1,17 @@
 package parser
 
 import org.openjdk.jmh.annotations._
+import java.util.concurrent.TimeUnit.SECONDS
 import scala.collection.mutable.StringBuilder
 
-/* This benchmarks measure a very common case: collecting a relatively large
- * `String` where we're testing that each character is within a set of
- * characters. */
+/*
+ * This benchmarks measure a very common case: collecting all consecutive
+ * characters that meet some condition. In the benchmarks below we collect all
+ * consecutive digits, as we might do if parsing an integer.
+ */
 @State(Scope.Benchmark)
+@Warmup(iterations = 5, time = 1, timeUnit = SECONDS)
+@Measurement(iterations = 5, time = 1, timeUnit = SECONDS)
 class RepeatBenchmark {
 
   val digit: Parser[Char] =
