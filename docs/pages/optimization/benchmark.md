@@ -24,7 +24,7 @@ You can run the benchmarks using the following `sbt` commands:
 
 The benchmarks will take a few minutes to run, which is good for getting accurate results but not for quick iteration when developing optimizations. The command `Jmh / run -h` will output the many arguments you can pass to JMH to change how it runs the benchmarks. Using `Jmh / run -i 1 -wi 1 -f 1` will run many fewer iterations, giving results in a few seconds at the risk of more inaccuracy in measurements. In my testing this was accurate enough for the large performance gain we're looking for here, though I did verify the results with a longer run once I'd finished an optimization.
 
-Results from my initial benchmark run are below. I've ordered the results from slowest to fastest. The absolute values don't matter; what is important is the relative differences in performance. 
+Results from my initial benchmark run are below. Larger numbers are better and I've ordered the results from slowest to fastest. The absolute values don't matter; what is important is the relative differences in performance. 
 
 We can see:
 

@@ -154,6 +154,24 @@ sealed trait Parser[A] {
               index
             )
 
+        case ParserCharWhere(predicate) =>
+          if (index >= input.size)
+            Failure(
+              "Input has ended but was expecting a character",
+              input,
+              index
+            )
+          else {
+            val ch = input.charAt(index)
+            if (predicate(ch)) Success(ch, input, index + 1)
+            else
+              Failure(
+                s"Input did not contain a character matching our predicate at index $index",
+                input,
+                index
+              )
+          }
+
         case ParserString(value) =>
           if (input.startsWith(value, index))
             Success(value, input, index + value.size)
@@ -183,6 +201,8 @@ object Parser {
   def fail[A]: Parser[A] = ParserFail()
   def succeed[A](implicit m: Monoid[A]): Parser[A] = ParserSucceed(m)
   def delay[A](parser: => Parser[A]): Parser[A] = ParserDelay(() => parser)
+  def charWhere(predicate: Char => Boolean): Parser[Char] =
+    ParserCharWhere(predicate)
   def charIn(char: Char, chars: Char*): Parser[Char] =
     chars.foldLeft(Parser.char(char)) { (parser, char) =>
       parser.orElse(Parser.char(char))
@@ -193,6 +213,8 @@ object Parser {
     }
 
   final case class ParserChar(value: Char) extends Parser[Char]
+  final case class ParserCharWhere(predicate: Char => Boolean)
+      extends Parser[Char]
   final case class ParserString(value: String) extends Parser[String]
   final case class ParserPure[A](value: A) extends Parser[A]
   final case class ParserFail[A]() extends Parser[A]

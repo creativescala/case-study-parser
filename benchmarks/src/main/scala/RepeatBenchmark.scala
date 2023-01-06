@@ -17,8 +17,13 @@ class RepeatBenchmark {
   val digit: Parser[Char] =
     Parser.charIn('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
+  val digitWhere: Parser[Char] = Parser.charWhere(_.isDigit)
+
   val number: Parser[String] =
     digit.map(_.toString).oneOrMore
+
+  val numberWhere: Parser[String] =
+    digitWhere.map(_.toString).oneOrMore
 
   val input = "123456789012345678901234567890"
 
@@ -26,6 +31,12 @@ class RepeatBenchmark {
   @Benchmark
   def numberParser(): Unit = {
     number.parse(input)
+    ()
+  }
+
+  @Benchmark
+  def numberWhereParser(): Unit = {
+    numberWhere.parse(input)
     ()
   }
 
