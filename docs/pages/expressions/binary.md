@@ -117,8 +117,36 @@ I added the following constructors:
 - `Parser.charIn(char: Char, chars: Char*): Parser[Char]`
 - `Parser.stringIn(string: String, strings: String*): Parser[String]`
 
+To keep the interpreter small I haven't directly reified `charIn` or `stringIn`, instead implementing them in terms of simpler methods.
+
+```scala
+def charIn(char: Char, chars: Char*): Parser[Char] =
+  chars.foldLeft(Parser.char(char)) { (parser, char) =>
+    parser.orElse(Parser.char(char))
+  }
+
+def stringIn(string: String, strings: String*): Parser[String] =
+  strings.foldLeft(Parser.string(string)) { (parser, string) =>
+    parser.orElse(Parser.string(string))
+  }
+```
+
 I then reworked the `repeat` combinator:
 
-- I added `repeatAtLeast(minimum: Int)`, which allows the called to specify the minimum number of repeats for a succesful parse;
+- I added `repeatAtLeast(minimum: Int)`, which allows the caller to specify the minimum number of repeats for a succesful parse;
 - I added `zeroOrMore` and `oneOrMore` as special cases of `repeatAtLeast`; and
 - I added `repeatBetween(min: Int, max: Int)` to allow specifying a maximum number of repeats.
+
+As with `charIn` and `stringIn`, I implemented `repeatAtLeast` in terms of the existing `ParserRepeat` reificiation and `and`.
+
+```scala
+def repeatAtLeast(minimum: Int)(implicit m: Monoid[A]): Parser[A] = {
+  def loop(count: Int): Parser[A] =
+    if (count == 0) ParserRepeat(this, m)
+    else ParserAnd(this, loop(count - 1), m)
+
+  loop(minimum)
+}
+```
+
+As we add a richer API to our library we'll find there is a tension between keeping the internals simpler by implementing new methods in terms of existing ones, and improving performance by taking advantage of the additional information we have when implementing a new method directly. We'll see more of this in the [chapter on optimization](../optimization/README.md).
