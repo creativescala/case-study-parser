@@ -147,12 +147,31 @@
               <li><code>Parser.charIn(char: Char, chars: Char*): Parser[Char]</code></li>
               <li><code>Parser.stringIn(string: String, strings: String*): Parser[String]</code></li>
             </ul>
+            <p>To keep the interpreter small I haven&#39;t directly reified <code>charIn</code> or <code>stringIn</code>, instead implementing them in terms of simpler methods.</p>
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">charIn</span><span>(</span><span class="identifier">char</span><span>: </span><span class="type-name">Char</span><span>, </span><span class="identifier">chars</span><span>: </span><span class="type-name">Char</span><span>*): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Char</span><span>] =
+  </span><span class="identifier">chars</span><span>.</span><span class="identifier">foldLeft</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">char</span><span>(</span><span class="identifier">char</span><span>)) { (</span><span class="identifier">parser</span><span>, </span><span class="identifier">char</span><span>) =&gt;
+    </span><span class="identifier">parser</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">char</span><span>(</span><span class="identifier">char</span><span>))
+  }
+
+</span><span class="keyword">def</span><span> </span><span class="declaration-name">stringIn</span><span>(</span><span class="identifier">string</span><span>: </span><span class="type-name">String</span><span>, </span><span class="identifier">strings</span><span>: </span><span class="type-name">String</span><span>*): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">String</span><span>] =
+  </span><span class="identifier">strings</span><span>.</span><span class="identifier">foldLeft</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">string</span><span>)) { (</span><span class="identifier">parser</span><span>, </span><span class="identifier">string</span><span>) =&gt;
+    </span><span class="identifier">parser</span><span>.</span><span class="identifier">orElse</span><span>(</span><span class="type-name">Parser</span><span>.</span><span class="identifier">string</span><span>(</span><span class="identifier">string</span><span>))
+  }</span></code></pre>
             <p>I then reworked the <code>repeat</code> combinator:</p>
             <ul>
-              <li>I added <code>repeatAtLeast(minimum: Int)</code>, which allows the called to specify the minimum number of repeats for a succesful parse;</li>
+              <li>I added <code>repeatAtLeast(minimum: Int)</code>, which allows the caller to specify the minimum number of repeats for a succesful parse;</li>
               <li>I added <code>zeroOrMore</code> and <code>oneOrMore</code> as special cases of <code>repeatAtLeast</code>; and</li>
               <li>I added <code>repeatBetween(min: Int, max: Int)</code> to allow specifying a maximum number of repeats.</li>
             </ul>
+            <p>As with <code>charIn</code> and <code>stringIn</code>, I implemented <code>repeatAtLeast</code> in terms of the existing <code>ParserRepeat</code> reificiation and <code>and</code>.</p>
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">repeatAtLeast</span><span>(</span><span class="identifier">minimum</span><span>: </span><span class="type-name">Int</span><span>)(</span><span class="keyword">implicit</span><span> </span><span class="identifier">m</span><span>: </span><span class="type-name">Monoid</span><span>[</span><span class="type-name">A</span><span>]): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] = {
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">loop</span><span>(</span><span class="identifier">count</span><span>: </span><span class="type-name">Int</span><span>): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">A</span><span>] =
+    </span><span class="keyword">if</span><span> (</span><span class="identifier">count</span><span> == </span><span class="number-literal">0</span><span>) </span><span class="type-name">ParserRepeat</span><span>(</span><span class="keyword">this</span><span>, </span><span class="identifier">m</span><span>)
+    </span><span class="keyword">else</span><span> </span><span class="type-name">ParserAnd</span><span>(</span><span class="keyword">this</span><span>, </span><span class="identifier">loop</span><span>(</span><span class="identifier">count</span><span> - </span><span class="number-literal">1</span><span>), </span><span class="identifier">m</span><span>)
+
+  </span><span class="identifier">loop</span><span>(</span><span class="identifier">minimum</span><span>)
+}</span></code></pre>
+            <p>As we add a richer API to our library we&#39;ll find there is a tension between keeping the internals simpler by implementing new methods in terms of existing ones, and improving performance by taking advantage of the additional information we have when implementing a new method directly. We&#39;ll see more of this in the <a href="../optimization/index.html">chapter on optimization</a>.</p>
             <p class="nextPage"><a href="recursion.html">Recursive Expressions→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
