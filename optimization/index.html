@@ -50,9 +50,16 @@
     <div id="content">
         <main class="content">
             <h1 id="benchmarks-and-optimization" class="title">Benchmarks and Optimization</h1>
-            <p>In this section we&#39;ll benchmark our parser combinator library, and use our benchmarks to optimize our implementation. </p>
+            <p>In this section we&#39;ll benchmark our parser combinator library, and use our benchmarks to optimize our implementation and inform our API design. Recall there are three main problem solving strategies:</p>
+            <ol class="arabic">
+              <li>reasoning from models;</li>
+              <li>reasoning from data; and</li>
+              <li>appeals to authority.</li>
+            </ol>
+            <p>In previous sections our main tool has been reasoning from models: we&#39;ve being using reificiation, following types, and so on, which all come from formal models of code. We&#39;ve mixed in a little bit of API design driven from experience using our library and from existing work on parsers, corresponding to reasoning from data and appeals to authority respectively. </p>
+            <p>In this section we&#39;ll work much more with reasoning from data, using our benchmarks to drive development. There is still an element of reasoning from models here, as the choice of benchmarks to run and optimizations to attempt is driven from a model of code performance.</p>
             <p>Our benchmarks will use <a href="https://github.com/openjdk/jmh">JMH</a>, which we&#39;ll interface with via <a href="https://github.com/sbt/sbt-jmh">sbt-jmh</a>. JMH is standard for benchmarking on the JVM, but it&#39;s not my favourite project. To the best of my knowledge the only official documentation for JMH is in the comments in the <a href="https://github.com/openjdk/jmh/tree/master/jmh-samples/src/main/java/org/openjdk/jmh/samples">JMH samples</a> and the <a href="https://javadoc.io/doc/org.openjdk.jmh/jmh-core/latest/index.html">JMH Javadoc</a>. It&#39;s not a great state of affairs. </p>
-            <p>To get started I&#39;ve created a benchmark, which you&#39;ll find in <code>benchmark/src/main/scala</code>. You can use it as an example when you come to creating your own.</p>
+            <p>Here&#39;s a quick rundown of how JMH works. Most of JMH is controlled by annotations, which are expressions in code that start with <code>@</code>. We&#39;ve already seen the <code>@tailrec</code> annotation. A method that we want to use a benchmark requires a <code>@Benchmark</code> annotation. Such methods must be declared in a class with no construtor arguments. Being a Java framework, JMH doesn&#39;t know about Scala&#39;s object literals. If the benchmark method relies on any fields or other values outside the method, these values must be annotated with <code>@State</code>. The easiest way to handle this is to annotate the entire class. That&#39;s enough to get started. You can find more from the resources above or by reading the benchmark code in this project.</p>
             <p class="nextPage"><a href="benchmark.html">Benchmarking→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
