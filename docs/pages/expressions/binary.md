@@ -79,24 +79,24 @@ An addition is a literal or variable, followed by the addition sign, followed by
 Here's my implementation.
 
 ```scala
-def oneOf(char: Char, chars: Chars*): Parser[String] =
+def charIn(char: Char, chars: Chars*): Parser[String] =
   chars.foldLeft(Parser.string(char.toString)){ (parser, char) =>
     parser.orElse(Parser.string(char.toString)) 
   }
   
-val whitespace = oneOf(' ', '\t', '\n').repeat
+val whitespace = charIn(' ', '\t', '\n').repeat
 
 val factor: Parser[Expression] = literal.orElse(variable)
 
-val addition = (factor, (whitespace *> oneOf('+') <* whitespace), factor)
+val addition = (factor, (whitespace *> charIn('+') <* whitespace), factor)
                  .mapN((l, _, r) => l + r)
 ```
 
 A few points:
 
 - I defined a parser `factor` to refer to a literal or a variable.
-- I created a utility method, `oneOf`, to make creating parsers easier.
-- I've also used `mapN`, `*>`, and `<*`, which are methods defined by Cats for all applicatives, to make the code a bit more compact. You should be familiar with `mapN`, but `*>` and `<*` may be new to you. The way to read them is as binary operations that only keep the value pointed to by the arrow. So in `whitespace *> oneOf('+') <* whitespace` I only keep the result of parsing the `+` and discard the result of parsing any whitespace. These methods are on the edge for me: they are not so well known that I feel confident using them in all codebases. In this context, though, it's an opportunity for you learn so I've used them.
+- I created a utility method, `charIn`, to make creating parsers easier.
+- I've also used `mapN`, `*>`, and `<*`, which are methods defined by Cats for all applicatives, to make the code a bit more compact. You should be familiar with `mapN`, but `*>` and `<*` may be new to you. The way to read them is as binary operations that only keep the value pointed to by the arrow. So in `whitespace *> charIn('+') <* whitespace` I only keep the result of parsing the `+` and discard the result of parsing any whitespace. These methods are on the edge for me: they are not so well known that I feel confident using them in all codebases. In this context, though, it's an opportunity for you learn so I've used them.
 
 
 ### Lessons on API Design
@@ -105,7 +105,7 @@ Our work so far as exposed some flaws in our current design. Here are the issues
 
 1. We have to use a `Parser[String]` just to look for a single `Char`. A `String` contains 0 or more characters, while a `Char` is exactly one character. It would be better if could use the more precise type `Char` when we want exactly one `Char`.
 
-2. `oneOf` is the kind of method that should be provided by our parser library, as it's a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we're looking for, and one where we specify a predicate that is `true` if the character is one we're looking for.
+2. `charIn` is the kind of method that should be provided by our parser library, as it's a case that frequently occurs. There are at least two variants we can envisage: one where we specify the characters we're looking for, and one where we specify a predicate that is `true` if the character is one we're looking for.
 
 3. The construction `parser.and(parser.repeat)` is an inconvenient way to express one or more repetitions of a parser, and is certainly a bit opaque to someone new to the library. This operation is sometimes known as the Kleene plus and is very common. We should consider directly supporting it.
 
@@ -114,8 +114,8 @@ Designing using type classes gets us some of the way to a good API, but not all 
 I added the following constructors:
 
 - `Parser.char(value: Char): Parser[Char]`
-- `Parser.oneCharOf(char: Char, chars: Char*): Parser[Char]`
-- `Parser.oneStringOf(string: String, strings: String*): Parser[String]`
+- `Parser.charIn(char: Char, chars: Char*): Parser[Char]`
+- `Parser.stringIn(string: String, strings: String*): Parser[String]`
 
 I then reworked the `repeat` combinator:
 

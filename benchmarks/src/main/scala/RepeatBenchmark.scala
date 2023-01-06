@@ -15,7 +15,7 @@ import scala.collection.mutable.StringBuilder
 class RepeatBenchmark {
 
   val digit: Parser[Char] =
-    Parser.oneCharOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+    Parser.charIn('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
   val number: Parser[String] =
     digit.map(_.toString).oneOrMore

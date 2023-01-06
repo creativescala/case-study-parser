@@ -183,11 +183,11 @@ object Parser {
   def fail[A]: Parser[A] = ParserFail()
   def succeed[A](implicit m: Monoid[A]): Parser[A] = ParserSucceed(m)
   def delay[A](parser: => Parser[A]): Parser[A] = ParserDelay(() => parser)
-  def oneCharOf(char: Char, chars: Char*): Parser[Char] =
+  def charIn(char: Char, chars: Char*): Parser[Char] =
     chars.foldLeft(Parser.char(char)) { (parser, char) =>
       parser.orElse(Parser.char(char))
     }
-  def oneStringOf(string: String, strings: String*): Parser[String] =
+  def stringIn(string: String, strings: String*): Parser[String] =
     strings.foldLeft(Parser.string(string)) { (parser, string) =>
       parser.orElse(Parser.string(string))
     }

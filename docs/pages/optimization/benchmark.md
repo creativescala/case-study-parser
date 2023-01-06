@@ -4,7 +4,7 @@ One very common parsing operation is to collect all consecutive characters that 
 
 ```scala
 val digit: Parser[Char] =
-  Parser.oneCharOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+  Parser.charIn('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 val number: Parser[String] =
   digit.map(_.toString).oneOrMore
@@ -13,7 +13,7 @@ val number: Parser[String] =
 I decided to start benchmarking with this common case. I created four benchmarks, which you can find in `benchmarks/src/main/scala/RepeatBenchmark.scala`:
 
 1. `numberParser` measures the baseline performance of the parser combinator library;
-2. `numberPatternLoop` measures the same algorithm written without the parser combinator framework, giving an idea of the overhead of combinator library adds;
+2. `numberPatternLoop` measures the same algorithm written without the parser combinator framework, giving an idea of the overhead the combinator library adds;
 3. `numberCharacterClassLoop` replaces the explicit conditional with a call to the `isDigit` method on `Char`; and
 4. `numberPatternStringBuilderLoop` measures the effect of using a `StringBuilder` instead of concatenating `Strings` in `numberPatternLoop`
 
@@ -22,7 +22,7 @@ You can run the benchmarks using the following `sbt` commands:
 - `project benchmarks` to change into the benchmarks projects within sbt; and
 - `Jmh / run` to run the benchmarks with the default JMH settings.
 
-The benchmarks will take a few minutes to run, which is good for getting accurate results but not for quick iteration of optimizations. The command `Jmh / run -h` will output the many arguments you can pass to JMH to change how it runs the benchmarks. Using `Jmh / run -i 1 -wi 1 -f 1` will run many fewer iterations, giving results in a few seconds at the risk of more inaccuracy in measurements. In my testing this was accurate enough for the large performance that we're looking for here, though I did verify the results with a longer run once I'd finished an optimization.
+The benchmarks will take a few minutes to run, which is good for getting accurate results but not for quick iteration when developing optimizations. The command `Jmh / run -h` will output the many arguments you can pass to JMH to change how it runs the benchmarks. Using `Jmh / run -i 1 -wi 1 -f 1` will run many fewer iterations, giving results in a few seconds at the risk of more inaccuracy in measurements. In my testing this was accurate enough for the large performance gain we're looking for here, though I did verify the results with a longer run once I'd finished an optimization.
 
 Results from my initial benchmark run are below. I've ordered the results from slowest to fastest. The absolute values don't matter; what is important is the relative differences in performance. 
 

@@ -20,13 +20,13 @@ import hedgehog._
 import hedgehog.munit.HedgehogSuite
 
 class ParserOneOfSuite extends HedgehogSuite {
-  property("oneCharOf succeeds when input starts with one of expected values") {
+  property("charIn succeeds when input starts with one of expected values") {
     for {
       expected <- Gen.list(Gen.latin1, Range.linear(1, 10)).forAll
       start <- Gen.element(expected.head, expected.tail).forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = start +: suffix
-      result = Parser.oneCharOf(expected.head, expected.tail: _*).parse(input)
+      result = Parser.charIn(expected.head, expected.tail: _*).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) =>
         fail(s"Parser failed on input $input when it should have succeeded")
@@ -35,7 +35,7 @@ class ParserOneOfSuite extends HedgehogSuite {
   }
 
   property(
-    "oneCharOf fails when input doesn't start with one of expected values"
+    "charIn fails when input doesn't start with one of expected values"
   ) {
     for {
       prefix <- Gen.upper.forAll
@@ -43,7 +43,7 @@ class ParserOneOfSuite extends HedgehogSuite {
       start <- Gen.element(expected.head, expected.tail).forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = prefix +: start +: suffix
-      result = Parser.oneCharOf(expected.head, expected.tail: _*).parse(input)
+      result = Parser.charIn(expected.head, expected.tail: _*).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) => success
       case parser.Success(_, _, _) =>
@@ -52,7 +52,7 @@ class ParserOneOfSuite extends HedgehogSuite {
   }
 
   property(
-    "oneStringOf succeeds when input starts with one of expected values"
+    "stringIn succeeds when input starts with one of expected values"
   ) {
     for {
       expected <- Gen
@@ -61,7 +61,7 @@ class ParserOneOfSuite extends HedgehogSuite {
       start <- Gen.element(expected.head, expected.tail).forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = start ++ suffix
-      result = Parser.oneStringOf(expected.head, expected.tail: _*).parse(input)
+      result = Parser.stringIn(expected.head, expected.tail: _*).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) =>
         fail(s"Parser failed on input $input when it should have succeeded")
@@ -70,7 +70,7 @@ class ParserOneOfSuite extends HedgehogSuite {
   }
 
   property(
-    "oneStringOf fails when input doesn't start with one of expected values"
+    "stringIn fails when input doesn't start with one of expected values"
   ) {
     for {
       prefix <- Gen.upper.forAll
@@ -80,7 +80,7 @@ class ParserOneOfSuite extends HedgehogSuite {
       start <- Gen.element(expected.head, expected.tail).forAll
       suffix <- Gen.string(Gen.latin1, Range.linear(0, 35)).forAll
       input = prefix +: (start ++ suffix)
-      result = Parser.oneStringOf(expected.head, expected.tail: _*).parse(input)
+      result = Parser.stringIn(expected.head, expected.tail: _*).parse(input)
     } yield result match {
       case parser.Failure(_, _, _) => success
       case parser.Success(_, _, _) =>
