@@ -112,6 +112,4 @@ You can see that adding the `Accumulator` brings another significant performance
 
 There is another interesting issue shown by the benchmark results. Notice that `numberAccumulatorParser` is only a small fraction faster than `numberParser`, while `numberWhereAccumulatorParser` is about three times faster than `numberWhereParser`. This is a general issue with benchmarking and optimization: performance is *not composable*. The performance of system A and system B combined is not simply the sum of the performance of the two systems alone. Systems nearly always interact when it comes to performance.
 
-Names
-
-Monoid vs Accumulator
+`Accumulator` is more flexible than the previous design using a `Monoid`, at the small cost of needing to specify the desired output type. As an example of the flexibility, for any type `A` we can implement an `Accumulator` outputting a `List[A]` using a `ListBuffer[A]`. It is also more efficient, as we have seen. I suggest replacing `Monoid` with `Accumulator` in the variants of `repeat`. I'm not going to do that in my implementation, due to the way this case study is built: the majority of the code samples are compiled against the actual `Parser` code and if I change the implementation of `repeat` I'll break the earlier examples.
