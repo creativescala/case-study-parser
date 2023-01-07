@@ -80,14 +80,14 @@
             <p>It seems to have worked. Let&#39;s give it a whirl.</p>
             <pre><code class="nohighlight"><span class="identifier">addition</span><span>.</span><span class="identifier">parse</span><span>(</span><span class="string-literal">&quot;1 + 2&quot;</span><span>)
 </span><span class="comment">// scala.MatchError: null
-// 	at parser.Parser.loop$2(Parser.scala:59)
-// 	at parser.Parser.loop$2(Parser.scala:67)
-// 	at parser.Parser.loop$2(Parser.scala:67)
-// 	at parser.Parser.loop$2(Parser.scala:61)
-// 	at parser.Parser.loop$2(Parser.scala:82)
-// 	at parser.Parser.parse(Parser.scala:194)
-// 	at parser.Parser.parse$(Parser.scala:57)
-// 	at parser.Parser$ParserOrElse.parse(Parser.scala:229)
+// 	at parser.Parser.loop$2(Parser.scala:64)
+// 	at parser.Parser.loop$2(Parser.scala:72)
+// 	at parser.Parser.loop$2(Parser.scala:72)
+// 	at parser.Parser.loop$2(Parser.scala:66)
+// 	at parser.Parser.loop$2(Parser.scala:87)
+// 	at parser.Parser.parse(Parser.scala:216)
+// 	at parser.Parser.parse$(Parser.scala:62)
+// 	at parser.Parser$ParserOrElse.parse(Parser.scala:251)
 // 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)
 // 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)</span></code></pre>
             <p>What the junk?! Our interpreter failed with a pattern match against <code>null</code>. How is this possible? Where did this <code>null</code> come from?</p>

@@ -85,10 +85,47 @@
             <p>(The combiner looks like the type of function we pass to <code>foldLeft</code>. This is no coincidence. This type of function, along with some additional structure on <code>A</code>, is known as a monoid action.)</p>
             <p>We can represent this as a type class</p>
             <pre><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">Input</span><span>, </span><span class="type-name">Accum</span><span>, </span><span class="type-name">Output</span><span>] {
-  </span><span class="keyword">def</span><span> </span><span class="declaration-name">create</span><span>: </span><span class="type-name">Accum</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">create</span><span>(): </span><span class="type-name">Accum</span><span>
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">append</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>, </span><span class="identifier">in</span><span>: </span><span class="type-name">Input</span><span>): </span><span class="type-name">Accum</span><span>
   </span><span class="keyword">def</span><span> </span><span class="declaration-name">retrieve</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>): </span><span class="type-name">Output</span><span>
 }</span></code></pre>
+            <p>and implement instances of it.</p>
+            <pre><code class="nohighlight"><span class="keyword">object</span><span> </span><span class="type-name">Accumulator</span><span> {
+  </span><span class="keyword">implicit</span><span> </span><span class="keyword">val</span><span> </span><span class="identifier">charStringBuilderStringInstance</span><span>: </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">Char</span><span>, </span><span class="type-name">StringBuilder</span><span>, </span><span class="type-name">String</span><span>] =
+    </span><span class="keyword">new</span><span> </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">Char</span><span>, </span><span class="type-name">StringBuilder</span><span>, </span><span class="type-name">String</span><span>] {
+      </span><span class="keyword">def</span><span> </span><span class="declaration-name">create</span><span>(): </span><span class="type-name">StringBuilder</span><span> = </span><span class="keyword">new</span><span> </span><span class="type-name">StringBuilder</span><span>()
+      </span><span class="keyword">def</span><span> </span><span class="declaration-name">append</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">StringBuilder</span><span>, </span><span class="identifier">in</span><span>: </span><span class="type-name">Char</span><span>): </span><span class="type-name">StringBuilder</span><span> =
+        </span><span class="identifier">accum</span><span>.</span><span class="identifier">append</span><span>(</span><span class="identifier">in</span><span>)
+      </span><span class="keyword">def</span><span> </span><span class="declaration-name">retrieve</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">StringBuilder</span><span>): </span><span class="type-name">String</span><span> = </span><span class="identifier">accum</span><span>.</span><span class="identifier">result</span><span>()
+    }
+}</span></code></pre>
+            <p>Now we can implement an alternative to <code>repeatAtLeast</code>, let&#39;s call it <code>repeatAtLeastA</code>, that accepts an <code>Accumulator</code> instead of <code>Monoid</code>. Or can we? If you try this (and you should) you might run into an issue with the middle <code>Accum</code> type parameter. Where should it come from? It&#39;s not really something relevant to the end user. They know the type of the input and the output, but the accumulator type is an implementation detail. The follow design, using a type member instead of a type parameter, is better.</p>
+            <pre><code class="nohighlight"><span class="keyword">trait</span><span> </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">Input</span><span>, </span><span class="type-name">Output</span><span>] {
+  </span><span class="keyword">type</span><span> </span><span class="type-name">Accum</span><span>
+
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">create</span><span>(): </span><span class="type-name">Accum</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">append</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>, </span><span class="identifier">in</span><span>: </span><span class="type-name">Input</span><span>): </span><span class="type-name">Accum</span><span>
+  </span><span class="keyword">def</span><span> </span><span class="declaration-name">retrieve</span><span>(</span><span class="identifier">accum</span><span>: </span><span class="type-name">Accum</span><span>): </span><span class="type-name">Output</span><span>
+}</span></code></pre>
+            <p>Now we can implement a method</p>
+            <pre><code class="nohighlight"><span class="keyword">def</span><span> </span><span class="declaration-name">repeatAtLeastA</span><span>[</span><span class="type-name">Out</span><span>](</span><span class="identifier">minimum</span><span>: </span><span class="type-name">Int</span><span>)(</span><span class="keyword">implicit</span><span>
+    </span><span class="identifier">accum</span><span>: </span><span class="type-name">Accumulator</span><span>[</span><span class="type-name">A</span><span>, </span><span class="type-name">Out</span><span>]
+): </span><span class="type-name">Parser</span><span>[</span><span class="type-name">Out</span><span>]</span></code></pre>
+            <p>which the user can call like <code>digit.repeatAtLeastA[String](1)</code> to produce <code>String</code> output. </p>
+            <p>I&#39;m not in love with the method name, but let&#39;s get benchmark results before committing to this new approach. Go ahead and implement this, and benchmark it.</p>
+            <p>I implemented two benchmarks: a parser using <code>charIn</code> and <code>repeatAtLeastA</code>, and a parser using <code>charWhere</code> and <code>repeatAtLeastA</code>. Full benchmark results are below, again ordered from slowest to fastest.</p>
+            <pre><code>[info] Benchmark                                        Mode  Cnt        Score        Error  Units
+[info] RepeatBenchmark.numberParser                    thrpt   25   179171.342 ±   6382.610  ops/s
+[info] RepeatBenchmark.numberAccumulatorParser         thrpt   25   219762.072 ±  16873.527  ops/s
+[info] RepeatBenchmark.numberWhereParser               thrpt   25  1119387.110 ±  48160.009  ops/s
+[info] RepeatBenchmark.numberPatternLoop               thrpt   25  3058160.571 ± 122305.672  ops/s
+[info] RepeatBenchmark.numberWhereAccumulatorParser    thrpt   25  3207455.981 ±   7432.588  ops/s
+[info] RepeatBenchmark.numberCharacterClassLoop        thrpt   25  3375930.599 ±  26563.046  ops/s
+[info] RepeatBenchmark.numberPatternStringBuilderLoop  thrpt   25  6799097.558 ±  17249.332  ops/s</code></pre>
+            <p>You can see that adding the <code>Accumulator</code> brings another significant performance gain. In some cases the library is now faster than code that doesn&#39;t use parser combinators! </p>
+            <p>There is another interesting issue shown by the benchmark results. Notice that <code>numberAccumulatorParser</code> is only a small fraction faster than <code>numberParser</code>, while <code>numberWhereAccumulatorParser</code> is about three times faster than <code>numberWhereParser</code>. This is a general issue with benchmarking and optimization: performance is <em>not composable</em>. The performance of system A and system B combined is not simply the sum of the performance of the two systems alone. Systems nearly always interact when it comes to performance.</p>
+            <p>Names</p>
+            <p>Monoid vs Accumulator</p>
             <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
