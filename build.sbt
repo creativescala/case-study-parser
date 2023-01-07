@@ -39,7 +39,7 @@ commands += Command.command("build") { state =>
 }
 lazy val css = taskKey[Unit]("Build the CSS")
 
-lazy val root = tlCrossRootProject.aggregate(core, docs)
+lazy val root = tlCrossRootProject.aggregate(benchmarks, core, docs)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform)
   .crossType(CrossType.Pure)

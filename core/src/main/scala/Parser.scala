@@ -51,6 +51,11 @@ sealed trait Parser[A] {
     loop(minimum)
   }
 
+  def repeatAtLeastA[Out](minimum: Int)(implicit
+      accum: Accumulator[A, Out]
+  ): Parser[Out] =
+    ParserRepeatAccumulator(this, minimum, accum)
+
   def repeatBetween(min: Int, max: Int)(implicit m: Monoid[A]): Parser[A] =
     ParserRepeatBetween(this, min, max, m)
 
@@ -115,6 +120,23 @@ sealed trait Parser[A] {
 
           val (offset, a) = repeatLoop(index, m.empty)
           Success(a, input, offset)
+
+        case ParserRepeatAccumulator(source, min, accum) =>
+          def repeatLoop(
+              count: Int,
+              idx: Int,
+              accumulated: accum.Accum
+          ): Result[A] =
+            loop(source, idx) match {
+              case Failure(reason, input, start) =>
+                if (count >= min)
+                  Success(accum.retrieve(accumulated), input, start)
+                else Failure(reason, input, start)
+              case Success(result, _, offset) =>
+                repeatLoop(count + 1, offset, accum.append(accumulated, result))
+            }
+
+          repeatLoop(0, index, accum.create())
 
         case ParserRepeatBetween(source, min, max, m) =>
           def repeatLoop(count: Int, idx: Int, result: A): Option[(Int, A)] =
@@ -235,6 +257,11 @@ object Parser {
   ) extends Parser[A]
   final case class ParserRepeat[A](source: Parser[A], monoid: Monoid[A])
       extends Parser[A]
+  final case class ParserRepeatAccumulator[In, Out](
+      source: Parser[In],
+      min: Int,
+      accumulator: Accumulator[In, Out]
+  ) extends Parser[Out]
   final case class ParserRepeatBetween[A](
       source: Parser[A],
       min: Int,
