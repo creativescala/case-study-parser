@@ -9,7 +9,7 @@ Our current implementation of `delay` re-evaluates the delayed `Parser` every ti
 
 Scala's `lazy val` makes memoization straightforward. A `lazy val` is like a `val` except the right-hand side expression, which produces the value, is not evaluated until the `lazy val` is first used. The value is then saved and used for subsequent uses. The following example shows these semantics. Note the `println` is not evalutes until the first use, but future uses do not re-evaluate the `println`.
 
-```scama mdoc
+```scala mdoc
 lazy val a = { 
   println("Evaluating")
   1
