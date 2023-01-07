@@ -56,7 +56,13 @@
             
             <h3 id="memoization" class="section">Memoization</h3>
             <p>Our current implementation of <code>delay</code> re-evaluates the delayed <code>Parser</code> every time it is encountered in the interpreter. This is wasteful as the <code>Parser</code> will not change between evaluations. We can store the value after we first evaluate it, a technique known as <a href="https://en.wikipedia.org/wiki/Memoization">memoization</a>. </p>
-            <p>Scala&#39;s <code>lazy val</code> makes it straightforward to implement memoization. </p>
+            <p>Scala&#39;s <code>lazy val</code> makes memoization straightforward. A <code>lazy val</code> is like a <code>val</code> except the right-hand side expression, which produces the value, is not evaluated until the <code>lazy val</code> is first used. The value is then saved and used for subsequent uses. The following example shows these semantics. Note the <code>println</code> is not evalutes until the first use, but future uses do not re-evaluate the <code>println</code>.</p>
+            <pre><code class="scama">lazy val a = { 
+  println(&quot;Evaluating&quot;)
+  1
+}
+a
+a</code></pre>
             
             <h3 id="rewriting" class="section">Rewriting</h3>
             <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
