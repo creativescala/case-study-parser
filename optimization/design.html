@@ -21,7 +21,7 @@
 <body>
     <nav id="topbar"><p><a href="benchmark.html">←</a></p>
 <p><a href="../../">Case Study: Parsing</a></p>
-<p><a href="../context/index.html">→</a></p></nav>
+<p><a href="internals.html">→</a></p></nav>
     <nav id="sidebar">
         <ul class="nav-list">
           <li class="level1"><a href="../index.html">Case Study: Parsing</a></li>
@@ -42,6 +42,7 @@
           <li class="level1"><a href="index.html">Benchmarks and Optimization</a></li>
           <li class="level2"><a href="benchmark.html">Benchmarking</a></li>
           <li class="level2 active"><a href="#">Designing for Performance</a></li>
+          <li class="level2"><a href="internals.html">Internal Optimizations</a></li>
           <li class="level1"><a href="../context/index.html">Parsers in Context</a></li>
           <li class="level2"><a href="../context/evaluation.html">Controlling Order of Evaluation</a></li>
           <li class="level1"><a href="../references.html">References</a></li>
@@ -124,9 +125,8 @@
 [info] RepeatBenchmark.numberPatternStringBuilderLoop  thrpt   25  6799097.558 ±  17249.332  ops/s</code></pre>
             <p>You can see that adding the <code>Accumulator</code> brings another significant performance gain. In some cases the library is now faster than code that doesn&#39;t use parser combinators! </p>
             <p>There is another interesting issue shown by the benchmark results. Notice that <code>numberAccumulatorParser</code> is only a small fraction faster than <code>numberParser</code>, while <code>numberWhereAccumulatorParser</code> is about three times faster than <code>numberWhereParser</code>. This is a general issue with benchmarking and optimization: performance is <em>not composable</em>. The performance of system A and system B combined is not simply the sum of the performance of the two systems alone. Systems nearly always interact when it comes to performance.</p>
-            <p>Names</p>
-            <p>Monoid vs Accumulator</p>
-            <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
+            <p><code>Accumulator</code> is more flexible than the previous design using a <code>Monoid</code>, at the small cost of needing to specify the desired output type. As an example of the flexibility, for any type <code>A</code> we can implement an <code>Accumulator</code> outputting a <code>List[A]</code> using a <code>ListBuffer[A]</code>. It is also more efficient, as we have seen. I suggest replacing <code>Monoid</code> with <code>Accumulator</code> in the variants of <code>repeat</code>. I&#39;m not going to do that in my implementation, due to the way this case study is built: the majority of the code samples are compiled against the actual <code>Parser</code> code and if I change the implementation of <code>repeat</code> I&#39;ll break the earlier examples.</p>
+            <p class="nextPage"><a href="internals.html">Internal Optimizations→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
     </div>
