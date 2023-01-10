@@ -31,8 +31,8 @@ sealed trait Parser[A] {
   def flatMap[B](f: A => Parser[B]): Parser[B] =
     ParserFlatMap(this, f)
 
-  def orElse(that: => Parser[A]): Parser[A] =
-    ParserOrElse(this, () => that)
+  def orElse(that: Parser[A]): Parser[A] =
+    ParserOrElse(this, that)
 
   def and(that: Parser[A])(implicit s: Semigroup[A]): Parser[A] =
     ParserAnd(this, that, s)
@@ -85,7 +85,7 @@ sealed trait Parser[A] {
 
         case ParserOrElse(left, right) =>
           loop(left, index) match {
-            case _: Failure    => loop(right(), index)
+            case _: Failure    => loop(right, index)
             case s: Success[_] => s
           }
 
@@ -210,7 +210,8 @@ sealed trait Parser[A] {
 
         case ParserSucceed(m) => Success(m.empty, input, index)
 
-        case ParserDelay(p) => loop(p(), index)
+        case ParserDelay(p)      => loop(p(), index)
+        case p: ParserMemoize[A] => loop(p.force, index)
       }
 
     loop(this, 0)
@@ -223,6 +224,7 @@ object Parser {
   def fail[A]: Parser[A] = ParserFail()
   def succeed[A](implicit m: Monoid[A]): Parser[A] = ParserSucceed(m)
   def delay[A](parser: => Parser[A]): Parser[A] = ParserDelay(() => parser)
+  def memoize[A](parser: => Parser[A]): Parser[A] = ParserMemoize(() => parser)
   def charWhere(predicate: Char => Boolean): Parser[Char] =
     ParserCharWhere(predicate)
   def charIn(char: Char, chars: Char*): Parser[Char] =
@@ -248,7 +250,7 @@ object Parser {
       extends Parser[(A, B)]
   final case class ParserFlatMap[A, B](source: Parser[A], f: A => Parser[B])
       extends Parser[B]
-  final case class ParserOrElse[A](left: Parser[A], right: () => Parser[A])
+  final case class ParserOrElse[A](left: Parser[A], right: Parser[A])
       extends Parser[A]
   final case class ParserAnd[A](
       left: Parser[A],
@@ -271,6 +273,9 @@ object Parser {
   final case class ParserTailRecM[A, B](f: A => Parser[Either[A, B]], a: A)
       extends Parser[B]
   final case class ParserDelay[A](parser: () => Parser[A]) extends Parser[A]
+  final case class ParserMemoize[A](parser: () => Parser[A]) extends Parser[A] {
+    lazy val force: Parser[A] = parser()
+  }
 
   implicit val parserMonadInstance: Monad[Parser] =
     new Monad[Parser] {

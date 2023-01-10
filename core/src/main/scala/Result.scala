@@ -23,6 +23,18 @@ sealed trait Result[+A] {
       case Success(result, input, offset) => Success(f(result), input, offset)
       case f: Failure                     => f
     }
+
+  def isSuccess: Boolean =
+    this match {
+      case _: Success[_] => true
+      case _: Failure    => false
+    }
+
+  def isFailure: Boolean =
+    this match {
+      case _: Success[_] => false
+      case _: Failure    => true
+    }
 }
 object Result {
   def success[A](result: A, input: String, offset: Int): Result[A] =
