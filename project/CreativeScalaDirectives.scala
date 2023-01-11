@@ -146,13 +146,20 @@ object CreativeScalaDirectives extends DirectiveRegistry {
         val next = cursor.flattenedSiblings.nextDocument
           .map(c => SpanLink(Seq(Text(rightArrow)), InternalTarget(c.path)))
           .getOrElse(Text(""))
-        val here = cursor.root.target.title
-          .map(title => SpanLink(Seq(title), InternalTarget(Path.Root)))
-          .getOrElse(Text(""))
+        val root = cursor.root.target
+        val home =
+          (root.title, root.coverDocument)
+            .mapN((title, doc) =>
+              SpanLink(
+                Seq(title),
+                InternalTarget(doc.path)
+              )
+            )
+            .getOrElse(Text(""))
 
         TemplateElement(
           BlockSequence(
-            Seq(Paragraph(previous), Paragraph(here), Paragraph(next))
+            Seq(Paragraph(previous), Paragraph(home), Paragraph(next))
           )
         )
       }
