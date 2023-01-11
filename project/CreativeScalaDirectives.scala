@@ -2,6 +2,7 @@ import cats.data._
 import cats.implicits._
 import laika.ast._
 import laika.directive._
+import laika.ast
 
 object CreativeScalaDirectives extends DirectiveRegistry {
 
@@ -148,11 +149,11 @@ object CreativeScalaDirectives extends DirectiveRegistry {
           .getOrElse(Text(""))
         val root = cursor.root.target
         val home =
-          (root.title, root.coverDocument)
-            .mapN((title, doc) =>
+          (root.title)
+            .map(title =>
               SpanLink(
                 Seq(title),
-                InternalTarget(doc.path)
+                InternalTarget(ast.Path.Root.relativeTo(cursor.path))
               )
             )
             .getOrElse(Text(""))
