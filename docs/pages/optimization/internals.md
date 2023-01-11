@@ -28,7 +28,7 @@ final case class ParserDelay[A](parser: () => Parser[A]) extends Parser[A] {
 }
 ```
 
-Now we should verify this change actually improves performance. Parsing expressions, which we looked at in the [previous section](/expressions/recursion.md), depends on delayed parsers and therefore makes a good benchmark. change. Be careful when benchmarking this change. You may need to change how `orElse` is implemented in addition to `Parser.delay`.
+Now we should verify this change actually improves performance. Parsing expressions, which we looked at in the [previous section](../expressions/recursion.md), depends on delayed parsers and therefore makes a good benchmark. change. Be careful when benchmarking this change. You may need to change how `orElse` is implemented in addition to `Parser.delay`.
 
 Below are the results from my experiments. I don't see any consistent improvement from memoization; the memoized and non-memoized parsers are within the error bounds of each other. The results are surprising to me; I was expecting to see more effect from memoization. I tried a lot of different implementations to try to find a consistent performance difference, but was unable to do so.
 
