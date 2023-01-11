@@ -86,11 +86,11 @@
 // 	at parser.Parser.loop$2(Parser.scala:72)
 // 	at parser.Parser.loop$2(Parser.scala:66)
 // 	at parser.Parser.loop$2(Parser.scala:87)
-// 	at parser.Parser.parse(Parser.scala:216)
+// 	at parser.Parser.parse(Parser.scala:217)
 // 	at parser.Parser.parse$(Parser.scala:62)
-// 	at parser.Parser$ParserOrElse.parse(Parser.scala:251)
-// 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)
-// 	at repl.MdocSession$App0$$anonfun$16.apply(recursion.md:79)</span></code></pre>
+// 	at parser.Parser$ParserOrElse.parse(Parser.scala:253)
+// 	at repl.MdocSession$App0$$anonfun$14.apply(recursion.md:79)
+// 	at repl.MdocSession$App0$$anonfun$14.apply(recursion.md:79)</span></code></pre>
             <p>What the junk?! Our interpreter failed with a pattern match against <code>null</code>. How is this possible? Where did this <code>null</code> come from?</p>
             <p>Let&#39;s see an simplified example showing the same behaviour we&#39;re seeing in our parser.</p>
             <pre><code class="nohighlight"><span class="keyword">val</span><span> </span><span class="identifier">a</span><span>: </span><span class="type-name">String</span><span> = {
