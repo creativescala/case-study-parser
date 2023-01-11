@@ -22,7 +22,7 @@ a
 
 With a `lazy val` we can change the reification of `delay`, which in my implmentation is a case class called `ParserDelay`, to memoize the delayed parser. I've shown how to do this below, but try to do it yourself before reading my solution.
 
-```scala mdoc:silent
+```scala
 final case class ParserDelay[A](parser: () => Parser[A]) extends Parser[A] {
   lazy val force: Parser[A] = parser()
 }
