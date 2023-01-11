@@ -86,6 +86,10 @@ lazy val docs = project
       laika.parse.code.SyntaxHighlighting,
       CreativeScalaDirectives
     ),
+    laikaConfig := LaikaConfig.defaults.withConfigValue(
+      "parsers.baseUrl",
+      "https://creativescala.github.io/case-study-parser/index.html"
+    ),
     tlSite := Def
       .sequential(
         mdoc.toTask(""),

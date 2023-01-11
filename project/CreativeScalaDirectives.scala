@@ -2,7 +2,6 @@ import cats.data._
 import cats.implicits._
 import laika.ast._
 import laika.directive._
-import laika.ast
 
 object CreativeScalaDirectives extends DirectiveRegistry {
 
@@ -150,13 +149,15 @@ object CreativeScalaDirectives extends DirectiveRegistry {
         val root = cursor.root.target
         val home =
           (root.title)
-            .map(title =>
-              SpanLink(
-                Seq(title),
-                InternalTarget(ast.Path.Root.relativeTo(cursor.path))
-              )
-            )
-            .getOrElse(Text(""))
+            .map { title =>
+              cursor.config
+                .get[String]("parsers.baseUrl")
+                .fold(
+                  error => Text(s"Invalid base URL: $error"),
+                  baseURL => SpanLink(Seq(title), ExternalTarget(s"$baseURL"))
+                )
+            }
+            .getOrElse(Text("Missing root title"))
 
         TemplateElement(
           BlockSequence(
