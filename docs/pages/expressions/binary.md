@@ -79,7 +79,7 @@ An addition is a literal or variable, followed by the addition sign, followed by
 Here's my implementation.
 
 ```scala
-def charIn(char: Char, chars: Chars*): Parser[String] =
+def charIn(char: Char, chars: Char*): Parser[String] =
   chars.foldLeft(Parser.string(char.toString)){ (parser, char) =>
     parser.orElse(Parser.string(char.toString)) 
   }
