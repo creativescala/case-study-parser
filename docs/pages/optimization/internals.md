@@ -55,3 +55,85 @@ In more complicated situtation we might want more detail about how the code runs
 
 
 ### Rewriting
+
+In many cases we can express the same functionality using  `charIn` or `charWhere`. This is a problem when it comes to reasoning about performance. We've seen that `charWhere` can be much more efficient than `charIn`, but its not obvious to the user that this is the case. We'd ideally like equivalent code to have roughly equivalent performance no matter how it's written, rather than requiring the developer to know obscure implementation specific rules.
+
+We can achieve this by rewriting `charIn` to `charWhere`. In fact we can do better, by rewriting any chain of `orElse` and `Parser.char` into `charWhere`. For example, if we see
+
+```scala mdoc:silent
+Parser.char('a').orElse(Parser.char('b'))
+```
+we can rewrite it to
+
+```scala mdoc:silent
+Parser.charWhere(x => x == 'a' || x == 'b')
+```
+
+This type of optimization, where we rewrite code into a functionally equivalent but more efficient alternative, is the core of what optimizing compilers do.
+
+
+I want to be able to benchmark this optimization against the current implementation, so I'm going to implement it in a separate object in a separate file. Because we've reified `Parser`, and hence it's represented as an algebraic data type, we can easily do this. 
+
+My implementation of the optimization has three parts:
+
+- given a `Parser`, I walk over the tree of elements looking for an `orElse`;
+- once I find an `orElse` I see if it only contains `orElse` and `charIn`; and
+- if so, I convert into an equivalent `charWhere`; otherwise I leave it alone.
+
+Have a go at implementing it yourself. If you struggle, my implementation it below. Once you have an implementation run some benchmarks. In my benchmarks, results of which are also below, this transformation results in code that is about 25 times faster!
+
+Here's the implementation:
+
+```scala mdoc:silent
+import cats.implicits._
+import parser.Parser._
+
+object Optimize {
+  def orElseCharToCharWhere[A](parser: Parser[A]): Parser[A] = {
+    def collectCharIn[A](parser: Parser[A]): Option[Set[Char]] =
+      parser match {
+        case ParserChar(value) => Set(value).some
+        case ParserOrElse(left, right) =>
+          (collectCharIn(left), collectCharIn(right)).mapN((l, r) => l ++ r)
+        case _ => none[Set[Char]]
+      }
+
+    def toCharWhere(chars: Set[Char]): Parser[Char] =
+      Parser.charWhere(char => chars.contains(char))
+
+    parser match {
+      case p: ParserOrElse[a] =>
+        val chars = collectCharIn(p)
+        chars
+          .map(chars => toCharWhere(chars).asInstanceOf[Parser[a]])
+          .getOrElse(p)
+      case ParserMap(source, f) => ParserMap(orElseCharToCharWhere(source), f)
+      case ParserRepeatBetween(source, min, max, monoid) =>
+        ParserRepeatBetween(orElseCharToCharWhere(source), min, max, monoid)
+      case ParserRepeat(source, monoid) =>
+        ParserRepeat(orElseCharToCharWhere(source), monoid)
+      case ParserRepeatAccumulator(source, min, accumulator) =>
+        ParserRepeatAccumulator(orElseCharToCharWhere(source), min, accumulator)
+      case ParserProduct(left, right) =>
+        ParserProduct(orElseCharToCharWhere(left), orElseCharToCharWhere(right))
+      case ParserAnd(left, right, semigroup) =>
+        ParserAnd(
+          orElseCharToCharWhere(left),
+          orElseCharToCharWhere(right),
+          semigroup
+        )
+      case ParserFlatMap(source, f) =>
+        ParserFlatMap(orElseCharToCharWhere(source), f)
+      case other => other
+    }
+  }
+}
+```
+
+Here are the benchmark results:
+
+```
+[info] Benchmark                                          Mode  Cnt        Score       Error  Units
+[info] ToCharWhereBenchmark.parser                       thrpt   25   104026.788 ±   565.152  ops/s
+[info] ToCharWhereBenchmark.parserOrElseCharToCharWhere  thrpt   25  2565950.528 ± 54878.768  ops/s
+```
