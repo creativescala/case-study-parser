@@ -60,6 +60,9 @@ In many cases we can express the same functionality using  `charIn` or `charWher
 
 We can achieve this by rewriting `charIn` to `charWhere`. In fact we can do better, by rewriting any chain of `orElse` and `Parser.char` into `charWhere`. For example, if we see
 
+```scala mdoc:invisible
+import parser.Parser
+```
 ```scala mdoc:silent
 Parser.char('a').orElse(Parser.char('b'))
 ```
