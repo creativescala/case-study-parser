@@ -17,7 +17,25 @@
 package parser
 
 /** Indicates the result of a parse. */
-sealed trait Result[A]
+sealed trait Result[+A] {
+  def map[B](f: A => B): Result[B] =
+    this match {
+      case Success(result, input, offset) => Success(f(result), input, offset)
+      case f: Failure                     => f
+    }
+
+  def isSuccess: Boolean =
+    this match {
+      case _: Success[_] => true
+      case _: Failure    => false
+    }
+
+  def isFailure: Boolean =
+    this match {
+      case _: Success[_] => false
+      case _: Failure    => true
+    }
+}
 object Result {
   def success[A](result: A, input: String, offset: Int): Result[A] =
     Success(result, input, offset)
@@ -41,5 +59,5 @@ final case class Success[A](result: A, input: String, offset: Int)
   *   - input is the input that the parser attempted to parse
   *   - start is the index into input of where the parser started from
   */
-final case class Failure[A](reason: String, input: String, start: Int)
-    extends Result[A]
+final case class Failure(reason: String, input: String, start: Int)
+    extends Result[Nothing]
