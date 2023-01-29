@@ -101,7 +101,8 @@
               <li>once I find an <code>orElse</code> I see if it only contains <code>orElse</code> and <code>charIn</code>; and</li>
               <li>if so, I convert into an equivalent <code>charWhere</code>; otherwise I leave it alone.</li>
             </ul>
-            <p>Have a go at implementing it yourself. If you struggle, my implementation it below. Once you have an implementation run some benchmarks. In my benchmarks, results of which are also below, this transformation results in code that is about 25 times faster!</p>
+            <p>Have a go at implementing it yourself. It should use techniques you already know, <em>except</em> you&#39;re likely to run into one issue: the type system. Attempting to convince the type system that the rewrite is valid cannot be done with just what we have available. The issue is we are attempting to replace, at run-time, an <code>OrElse[A,B]</code> with a <code>CharWhere</code>, and the compiler doesn&#39;t know that <code>A</code> and <code>B</code> will both be <code>Char</code> and hence this is ok. We know because we check this is the case, but we cannot represent this check in a way the compiler understands. Remember types exist at compile-time and this is a run-time operation. We could transfer information from compile-time to run-time using so-called &quot;implicit evidence&quot; but doing so requires changing the interface which goes against the idea that this is a purely internal change. The solution is to throw in an <code>asInstanceOf</code> call, to tell the compiler &quot;I know you think this <code>Parser[Char]</code> is not the same as the <code>Parser[A]</code> you&#39;re looking for, but trust me&quot;. In general, you should <em>never</em> use this method. In almost all the cases I&#39;ve seen it&#39;s a sign of a bad design. It&#39;s justified here because we&#39;re switching levels. The type system ensures correct construction of the parsers at <em>compile-time</em>. We&#39;re rewriting them at <em>run-time</em>, and have done our own checks to ensure the rewrite is correct.</p>
+            <p>If you struggle, my implementation is below. Once you have an implementation run some benchmarks. In my benchmarks, results of which are also below, this transformation results in code that is about 25 times faster!</p>
             <p>Here&#39;s the implementation:</p>
             <pre><code class="nohighlight"><span class="keyword">import</span><span> </span><span class="identifier">cats</span><span>.</span><span class="identifier">implicits</span><span>.</span><span class="identifier">_</span><span>
 </span><span class="keyword">import</span><span> </span><span class="identifier">parser</span><span>.</span><span class="type-name">Parser</span><span>.</span><span class="identifier">_</span><span>
@@ -150,6 +151,7 @@
             <pre><code>[info] Benchmark                                          Mode  Cnt        Score       Error  Units
 [info] ToCharWhereBenchmark.parser                       thrpt   25   104026.788 ±   565.152  ops/s
 [info] ToCharWhereBenchmark.parserOrElseCharToCharWhere  thrpt   25  2565950.528 ± 54878.768  ops/s</code></pre>
+            <p>There are many more rewrites you could attempt to improve performance. For example, you could implement <em>map-fusion</em>, transforming <code>aParser.map(f).map(g)</code> into <code>aParser.map(f.andThen(g))</code>.</p>
             <p class="nextPage"><a href="../context/index.html">Parsers in Context→</a></p>
         </main>
         <footer>Creative Scala is copyright Noel Welsh</footer>
