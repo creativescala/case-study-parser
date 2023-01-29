@@ -83,7 +83,9 @@ My implementation of the optimization has three parts:
 - once I find an `orElse` I see if it only contains `orElse` and `charIn`; and
 - if so, I convert into an equivalent `charWhere`; otherwise I leave it alone.
 
-Have a go at implementing it yourself. If you struggle, my implementation it below. Once you have an implementation run some benchmarks. In my benchmarks, results of which are also below, this transformation results in code that is about 25 times faster!
+Have a go at implementing it yourself. It should use techniques you already know, *except* you're likely to run into one issue: the type system. Attempting to convince the type system that the rewrite is valid cannot be done with just what we have available. The issue is we are attempting to replace, at run-time, an `OrElse[A,B]` with a `CharWhere`, and the compiler doesn't know that `A` and `B` will both be `Char` and hence this is ok. We know because we check this is the case, but we cannot represent this check in a way the compiler understands. Remember types exist at compile-time and this is a run-time operation. We could transfer information from compile-time to run-time using so-called "implicit evidence" but doing so requires changing the interface which goes against the idea that this is a purely internal change. The solution is to throw in an `asInstanceOf` call, to tell the compiler "I know you think this `Parser[Char]` is not the same as the `Parser[A]` you're looking for, but trust me". In general, you should *never* use this method. In almost all the cases I've seen it's a sign of a bad design. It's justified here because we're switching levels. The type system ensures correct construction of the parsers at *compile-time*. We're rewriting them at *run-time*, and have done our own checks to ensure the rewrite is correct.
+
+If you struggle, my implementation is below. Once you have an implementation run some benchmarks. In my benchmarks, results of which are also below, this transformation results in code that is about 25 times faster!
 
 Here's the implementation:
 
@@ -140,3 +142,5 @@ Here are the benchmark results:
 [info] ToCharWhereBenchmark.parser                       thrpt   25   104026.788 ±   565.152  ops/s
 [info] ToCharWhereBenchmark.parserOrElseCharToCharWhere  thrpt   25  2565950.528 ± 54878.768  ops/s
 ```
+
+There are many more rewrites you could attempt to improve performance. For example, you could implement *map-fusion*, transforming `aParser.map(f).map(g)` into `aParser.map(f.andThen(g))`.
