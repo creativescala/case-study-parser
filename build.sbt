@@ -17,7 +17,7 @@ ThisBuild / developers := List(
 
 ThisBuild / tlSonatypeUseLegacyHost := true
 
-lazy val scala213 = "2.13.8"
+lazy val scala213 = "2.13.12"
 lazy val scala3 = "3.1.3"
 
 ThisBuild / crossScalaVersions := Seq(scala213, scala3)
@@ -47,8 +47,8 @@ lazy val core = crossProject(JVMPlatform, JSPlatform)
   .settings(
     name := "case-study-parser",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-core" % "2.8.0",
-      "org.typelevel" %%% "cats-effect" % "3.3.14",
+      "org.typelevel" %%% "cats-core" % "2.10.0",
+      "org.typelevel" %%% "cats-effect" % "3.5.1",
       "org.scalameta" %%% "munit" % "0.7.29" % Test,
       "org.typelevel" %%% "munit-cats-effect-3" % "1.0.7" % Test,
       "qa.hedgehog" %%% "hedgehog-core" % "0.10.1" % Test,
