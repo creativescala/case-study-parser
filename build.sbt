@@ -17,11 +17,10 @@ ThisBuild / developers := List(
 
 ThisBuild / tlSonatypeUseLegacyHost := true
 
-lazy val scala213 = "2.13.12"
 lazy val scala3 = "3.5.1"
 
-ThisBuild / crossScalaVersions := Seq(scala213, scala3)
-ThisBuild / scalaVersion := scala213 // the default Scala
+ThisBuild / crossScalaVersions := Seq(scala3)
+ThisBuild / scalaVersion := scala3 // the default Scala
 ThisBuild / semanticdbEnabled := true
 ThisBuild / semanticdbVersion := scalafixSemanticdb.revision
 ThisBuild / tlSitePublishBranch := Some("solution/all")

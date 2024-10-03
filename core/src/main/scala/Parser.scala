@@ -19,7 +19,7 @@ package parser
 import cats.Functor
 
 sealed trait Parser[A] {
-  import Parser._
+  import Parser.*
 
   def map[B](f: A => B): Parser[B] =
     ParserMap(this, f)
@@ -35,7 +35,7 @@ sealed trait Parser[A] {
           }
 
         case ParserString(value) =>
-          if (input.startsWith(value, index))
+          if input.startsWith(value, index) then
             Success(value, input, index + value.size)
           else
             Failure(

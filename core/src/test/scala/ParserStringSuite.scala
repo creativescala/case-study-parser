@@ -16,7 +16,7 @@
 
 package parser
 
-import hedgehog._
+import hedgehog.*
 import hedgehog.munit.HedgehogSuite
 
 class ParserStringSuite extends HedgehogSuite {
