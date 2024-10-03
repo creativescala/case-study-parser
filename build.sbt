@@ -28,12 +28,17 @@ ThisBuild / tlSitePublishBranch := Some("solution/all")
 
 // Run this (build) to do everything involved in building the project
 commands += Command.command("build") { state =>
-  "dependencyUpdates" ::
+  "clean" ::
     "compile" ::
     "test" ::
     "scalafixAll" ::
     "scalafmtAll" ::
+    "scalafmtSbt" ::
     "docs/tlSite" ::
+    "headerCreateAll" ::
+    "githubWorkflowGenerate" ::
+    "dependencyUpdates" ::
+    "reload plugins; dependencyUpdates; reload return" ::
     state
 }
 lazy val css = taskKey[Unit]("Build the CSS")
