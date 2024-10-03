@@ -24,7 +24,7 @@ val stringParser = Parser[String] = ???
 
 fieldParser.flatMap(result =>
   result match {
-    case "number" => intParser
+    case "number" => intParser.map(int => int.toString)
     case "string" => stringParser
   }
 )
